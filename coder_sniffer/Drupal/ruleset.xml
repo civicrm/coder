@@ -42,7 +42,11 @@
   the HTML -->
   <exclude-pattern>*.tpl.php</exclude-pattern>
  </rule>
-
+ <rule ref="Drupal.Files.LineLength">
+  <properties>
+   <property name="lineLimit" value="100"/>
+  </properties>
+ </rule>
  <rule ref="Generic.Formatting.SpaceAfterCast" />
 
  <rule ref="Generic.Functions.FunctionCallArgumentSpacing" />
