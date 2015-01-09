@@ -66,6 +66,10 @@ class Drupal_Sniffs_NamingConventions_ValidGlobalSniff implements PHP_CodeSniffe
                            '$update_free_access',
                            '$update_rewrite_settings',
                            '$user',
+                           '$dbLocale', // civi
+                           '$tsLocale', // civi
+                           '$activeQueueRunner', // civi
+                           '$',
                           );
 
 
@@ -102,6 +106,7 @@ class Drupal_Sniffs_NamingConventions_ValidGlobalSniff implements PHP_CodeSniffe
             if ($tokens[$varToken]['code'] === T_VARIABLE
                 && in_array($tokens[$varToken]['content'], $this->coreGlobals) === false
                 && $tokens[$varToken]['content']{1} !== '_'
+                && !preg_match('/^\$(wp|civi|Civi)/', $tokens[$varToken]['content'])
             ) {
                 $error = 'global variables should start with a single underscore followed by the module and another underscore';
                 $phpcsFile->addError($error, $varToken, 'GlobalUnderScore');
