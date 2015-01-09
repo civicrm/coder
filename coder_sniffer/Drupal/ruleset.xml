@@ -5,6 +5,55 @@
  <!-- All Drupal code files must be UTF-8 encoded and we treat them as such. -->
  <arg name="encoding" value="utf-8"/>
 
+ <!-- CIVICRM: The following are decent checks, but they're currently impractical. -->
+ <rule ref="Drupal.Commenting.DocComment.Empty"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.LongNotCapital"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.MissingShort"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.NonParamGroup"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.ParamGroup"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.ParamNotFirst"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.ShortFullStop"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.ShortNotCapital"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.ShortStartSpace"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.SpacingAfter"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.SpacingAfterTagGroup"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.SpacingBeforeShort"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.SpacingBeforeTags"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.TagValueIndent"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.TagsNotGrouped"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FileComment.Missing"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FileComment.SpacingAfterComment"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FileComment.WrongStyle"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.EmptyThrows"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.MissingParamComment"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.MissingParamType"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.MissingReturnComment"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.ParamCommentFullStop"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNewLine"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNotCapital"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.TypeHintMissing"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.DocBlock"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.NoSpaceBefore"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.NotCapital"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.SpacingAfter"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.SpacingBefore"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.InlineComment.WrongStyle"><severity>0</severity></rule>
+
+ <rule ref="Drupal.Strings.UnnecessaryStringConcat.Found"><severity>0</severity></rule>
+
+ <!-- CIVICRM: These rules are distinctly inappropriate -->
+ <rule ref="Drupal.NamingConventions.ValidClassName.NoUnderscores"><severity>0</severity></rule>
+ <rule ref="Drupal.NamingConventions.ValidVariableName"><severity>0</severity></rule>
+ <rule ref="Drupal.Semantics.RemoteAddress.RemoteAddress"><severity>0</severity></rule>
+ <rule ref="Drupal.NamingConventions.ValidClassName.StartWithCaptial">
+   <!-- hrm, targeted exclusion doesn't seem to work; disable for now
+   <exclude-pattern>*/api/*</exclude-pattern> -->
+   <severity>0</severity>
+ </rule>
+ <rule ref="Drupal.NamingConventions.ValidFunctionName.ScopeNotCamelCaps"><severity>0</severity></rule>
+
+ <!-- Upstream config -->
+
  <rule ref="Internal.NoCodeFound">
   <!-- Usually there is no code in txt or info files, so we suppress warnings about
     PHP short tags and what not. -->
