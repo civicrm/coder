@@ -12,6 +12,7 @@
  <!-- CIVICRM: The following are decent checks, but they're currently impractical. -->
  <!-- <rule ref=""><severity>0</severity></rule> -->
  <rule ref="Drupal.Array.Array.LongLineDeclaration"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.ClassComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.Empty"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.LongNotCapital"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.MissingShort"><severity>0</severity></rule>
