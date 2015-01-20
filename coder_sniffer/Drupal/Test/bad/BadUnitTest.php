@@ -25,10 +25,10 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                 return array(
                         1 => 1,
                         2 => 1,
-                        3 => 1,
+                        3 => 2,
                         4 => 1,
                         5 => 1,
-                        // 6 => 2, @todo Enable this check once https://pear.php.net/bugs/bug.php?id=20346 is fixed.
+                        6 => 2,
                         7 => 1,
                         8 => 1,
                         9 => 1,
@@ -36,7 +36,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         16 => 1,
                         17 => 1,
                         21 => 1,
-                        25 => 1,
+                        26 => 1,
                         27 => 1,
                         31 => 1,
                         36 => 1,
@@ -253,7 +253,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         379 => 1,
                         383 => 1,
                         384 => 1,
-                        385 => 2,
+                        385 => 1,
                         386 => 1,
                         387 => 1,
                         389 => 1,
@@ -275,6 +275,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         411 => 2,
                         417 => 1,
                         418 => 2,
+                        422 => 1,
                         424 => 2,
                         426 => 2,
                         428 => 1,
@@ -328,7 +329,6 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         714 => 1,
                         716 => 1,
                         717 => 1,
-                        719 => 1,
                         721 => 1,
                         724 => 1,
                         725 => 1,
@@ -347,7 +347,8 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         765 => 1,
                         775 => 1,
                         791 => 1,
-                        795 => 1,
+                        795 => 2,
+                        796 => 1,
                         799 => 1,
                         800 => 1,
                         801 => 1,
@@ -366,7 +367,6 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                 return array(
                         11 => 2,
                         15 => 2,
-                        19 => 1,
                        );
         }
         return array();
@@ -392,13 +392,8 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
             case 'bad.php':
                 return array(
                         14 => 1,
-                        135 => 1,
                         139 => 1,
-                        141 => 1,
-                        142 => 2,
-                        143 => 1,
-                        144 => 2,
-                        151 => 2,
+                        151 => 1,
                         156 => 1,
                         193 => 1,
                         202 => 1,

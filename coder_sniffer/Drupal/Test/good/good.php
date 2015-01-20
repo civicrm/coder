@@ -76,6 +76,11 @@ $x = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 +
 $x = $test ? -1 : 1;
 $x = $test ? 1 : -1;
 
+// Operators on new lines are allowed.
+$x = (CRM_Foo_Bar::singleton()->checkWhizBang($option1, $option2))
+  ? $something . $notes['baz']
+  : $notes['quux'] . $something_else;
+
 // Casting has a space.
 (int) $i;
 
@@ -152,6 +157,19 @@ $query = db_query("
     ':from_date' => $from_date,
     ':to_date' => $to_date,
   )
+);
+
+// Array with multi-line constant string in it.
+$array = array(
+  'name' => 'example_a',
+  'title' => 'Example A',
+  'xml' => '
+<foo>
+  <bar>
+    123456789 123456789 123456789 123456789 123456789 123456789 123456789
+    123456789 123456789 123456789 123456789 123456789 123456789 123456789
+  </bar>
+</foo>',
 );
 
 // Item assignment operators must be prefixed and followed by a space.
@@ -324,6 +342,7 @@ class Bar {
   protected function barMethod() {
 
   }
+
 }
 
 /**
@@ -377,6 +396,7 @@ class MyExampleLog {
   protected function protectedTest() {
 
   }
+
 }
 
 /**
@@ -782,3 +802,24 @@ function test7($x) {
  * @group rules_conditions
  */
 class ListContainsTest extends RulesIntegrationTestBase {}
+
+$x = 'Some markup text with allowed HTML5 <br> tag';
+
+/**
+ * Provides a 'Delete any path alias' action.
+ *
+ * @todo: Add access callback information from Drupal 7.
+ * @todo: Add group information from Drupal 7.
+ *
+ * @Action(
+ *   id = "rules_path_alias_delete",
+ *   label = @Translation("Delete any path alias"),
+ *   context = {
+ *     "alias" = @ContextDefinition("string",
+ *       label = @Translation("Existing system path alias"),
+ *       description = @Translation("Specifies the existing path alias you wish to delete, for example 'about/team'. Use a relative path and do not add a trailing slash.")
+ *     )
+ *   }
+ * )
+ */
+class AliasDelete extends RulesActionBase implements ContainerFactoryPluginInterface {}

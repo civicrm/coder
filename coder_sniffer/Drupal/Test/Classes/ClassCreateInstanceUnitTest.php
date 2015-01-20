@@ -1,7 +1,8 @@
 <?php
 
-class Drupal_Sniffs_Commenting_FunctionCommentUnitTest extends CoderSniffUnitTest
+class Drupal_Sniffs_Classes_ClassCreateInstanceUnitTest extends CoderSniffUnitTest
 {
+
 
     /**
      * Returns the lines where errors should occur.
@@ -14,14 +15,10 @@ class Drupal_Sniffs_Commenting_FunctionCommentUnitTest extends CoderSniffUnitTes
     public function getErrorList($testFile)
     {
         return array(
-                7 => 1,
-                9 => 1,
-                18 => 1,
-                28 => 1,
-                38 => 1,
-                48 => 1,
-                57 => 1,
-                66 => 1,
+                3 => 1,
+                4 => 1,
+                5 => 1,
+                6 => 1,
                );
 
     }//end getErrorList()
