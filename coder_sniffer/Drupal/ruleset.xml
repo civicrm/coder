@@ -27,6 +27,7 @@
  <rule ref="Drupal.Commenting.DocComment.SpacingAfterTagGroup"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.SpacingBeforeShort"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.SpacingBeforeTags"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.TagGroupSpacing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagValueIndent"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagsNotGrouped"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.Missing"><severity>0</severity></rule>
