@@ -23,6 +23,16 @@ class Drupal_Sniffs_WhiteSpace_ScopeClosingBraceSniff implements PHP_CodeSniffer
 {
 
     /**
+     * A list of tokenizers this sniff supports.
+     *
+     * @var array
+     */
+    public $supportedTokenizers = array(
+                                   'PHP',
+                                   'JS',
+                                  );
+
+    /**
      * The number of spaces code should be indented.
      *
      * @var int
@@ -115,6 +125,7 @@ class Drupal_Sniffs_WhiteSpace_ScopeClosingBraceSniff implements PHP_CodeSniffer
                     $phpcsFile->fixer->addNewlineBefore($scopeEnd);
                 }
             }
+
             return;
         }
 

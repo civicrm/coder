@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Some function comment tests.
+ */
+
+/**
  * Test.
  *
  * @param string $x
@@ -13,7 +18,7 @@ function foo($x, $y) {
 }
 
 /**
- * Missing exception description in the throws tag.
+ * Missing exception description in the throws tag, which is OK.
  *
  * @throws \Drupal\locale\StringStorageException
  */
@@ -67,5 +72,118 @@ function test5() {
  *   Some parameter that does not exist.
  */
 function test6() {
+
+}
+
+function test7() {
+  // Missing function doc here.
+}
+
+/**
+ * Test methods.
+ */
+class Test {
+
+  public function undocumented() {
+
+  }
+
+  // This should be a doc comment.
+  public function wrong() {
+
+  }
+
+}
+
+/**
+ * Some comment.
+ *
+ * @param int $x Description should be on the next line.
+ */
+function test8($x) {
+
+}
+
+/**
+ * Default implementation of a menu item (without a page or form controller).
+ *
+ * UML:
+ * @link http://drupal7demo.webel.com.au/node/1017 DefaultMenuItem @endlink.
+ *
+ * @param integer $foo
+ *   Test.
+ */
+function test9($foo) {
+
+}
+
+/**
+ * Default implementation of a menu item (without a page or form controller).
+ *
+ * UML:
+ * @link http://drupal7demo.webel.com.au/node/1017 DefaultMenuItem @endlink.
+ *
+ * @param integer $foo Test.
+ */
+function test10($foo) {
+
+}
+
+/**
+ * A function may throw multiple exceptions.
+ *
+ * @throws \Exception
+ *   Thrown when something bad happens.
+ * @throws \InvalidArgumentException
+ *   Thrown when an argument is invalid.
+ */
+function test11() {
+
+}
+
+/**
+ * Update or set users expiration time
+ *
+ * @param object $user
+ * @param int $timespan (seconds)
+ */
+function test12($user, $timespan) {
+
+}
+
+/**
+ * Update or set users expiration time.
+ *
+ * @param object $user
+ *   Object type hint in comment without real type hint is allowed.
+ */
+function test13($user) {
+
+}
+
+/**
+ * Update or set users expiration time.
+ *
+ * @param object $user
+ *   Object stdClass type hint is allowed for object.
+ */
+function test14(stdClass $user) {
+
+}
+
+/**
+ * Array parameter type mismatch.
+ *
+ * @param array $foo
+ *   Comment here.
+ */
+function test15(Test $foo) {
+
+}
+
+/*
+ * This should be converted into a doc comment.
+ */
+function test16() {
 
 }
