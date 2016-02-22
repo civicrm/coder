@@ -259,15 +259,15 @@ switch ($condition){
     $i;
 }
 
-// Missing space after "do"
+// Missing space after "do".
 do{
   $i;
 } while ($condition);
-// Missing space before "while"
+// Missing space before "while".
 do {
   $i;
 }while ($condition);
-// Missing space after "while"
+// Missing space after "while".
 do {
   $i;
 } while($condition);
@@ -795,7 +795,7 @@ class FooBar2 {
   public function test26() {print 'x';}
 }
 
-// Security issue: http://drupal.org/node/750148
+// Security issue: https://www.drupal.org/node/750148
 preg_match('/.+/e', 'subject');
 preg_match('/.+/iemesuexADSUeXJ', 'subject');
 preg_filter('/.+/imsuexADSUXJ', 'replacement', 'subject');

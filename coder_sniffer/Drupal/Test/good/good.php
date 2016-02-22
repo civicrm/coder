@@ -16,6 +16,7 @@
  */
 
 use Drupal\very_long_module_name_i_am_inventing_here_trololololo\SuperManager;
+use \Drupal\some_module\ExampleClass as AliasedExampleClass;
 
 // Singleline comment before a code line.
 $foo = 'bar';
@@ -58,6 +59,8 @@ $i--;
 --$i;
 $i++;
 ++$i;
+$x = $success ? $context['results']['success']++ : $context['results']['error']++;
+$x = $success ? foo()++ : bar()++;
 $i = -1;
 array('i' => -1);
 $i = (1 == -1);
@@ -105,6 +108,26 @@ $a = array('1', '2',
     ),
   ),
 );
+// Short array syntax.
+$a = [];
+$a = ['1', '2', '3'];
+$a = [
+  '1',
+  '2',
+  '3',
+];
+$a = ['1', '2', ['3']];
+$a = ['1', '2',
+  [
+    'one',
+    'two',
+    'three',
+    [
+      'key' => $value,
+      'title' => 'test',
+    ],
+  ],
+];
 
 // Array indentation.
 $x = array(
@@ -119,6 +142,18 @@ $x = array(
     ),
   ),
 );
+$x = [
+  'foo' => 'bar',
+  'fi' => long_function_call('hsdfsdmfsldkfnmdflkngdfngfg',
+    'fghfghfghfghfgh', $z),
+  'a' => 'b',
+  'foo' => [
+    'blu' => 1,
+    'f' => x(1) + [
+      'h' => 'x',
+    ],
+  ],
+];
 
 // Arrays in function calls.
 foo(
@@ -131,6 +166,16 @@ foo(
     ),
   )
 );
+foo(
+  [
+    'value' => 0,
+    'description' => t('xyz @url',
+      [
+        '@url' => 'http://example.com',
+      ]
+    ),
+  ]
+);
 
 // Pretty array layout.
 $a = array(
@@ -138,6 +183,11 @@ $a = array(
   'weight'   => 2,
   'callback' => 3,
 );
+$a = [
+  'title'    => 1,
+  'weight'   => 2,
+  'callback' => 3,
+];
 
 // Arrays with multi line strings.
 $query = db_query("
@@ -148,6 +198,14 @@ $query = db_query("
     ':to_date' => $to_date,
   )
 );
+$query = db_query("
+  SELECT * FROM {foobar} WHERE nid IN (1, 2, 3)
+  AND date BETWEEN '%s' AND '%s'
+  ", [
+    ':from_date' => $from_date,
+    ':to_date' => $to_date,
+  ]
+);
 
 // Array with multi line comments.
 $query = db_query("
@@ -157,6 +215,14 @@ $query = db_query("
     ':from_date' => $from_date,
     ':to_date' => $to_date,
   )
+);
+$query = db_query("
+  SELECT * FROM {foobar} WHERE nid IN (1, 2, 3)
+  AND date BETWEEN '%s' AND '%s'", /* comment
+  in here */ [
+    ':from_date' => $from_date,
+    ':to_date' => $to_date,
+  ]
 );
 
 // Array with multi-line constant string in it.
@@ -170,6 +236,148 @@ $array = array(
     123456789 123456789 123456789 123456789 123456789 123456789 123456789
   </bar>
 </foo>',
+);
+$array = [
+  'name' => 'example_a',
+  'title' => 'Example A',
+  'xml' => '
+<foo>
+  <bar>
+    123456789 123456789 123456789 123456789 123456789 123456789 123456789
+    123456789 123456789 123456789 123456789 123456789 123456789 123456789
+  </bar>
+</foo>',
+];
+
+// Indentation: multi line function call with array and fuction closer on the
+// same line.
+$result = example_fetch_data($id,
+  array(
+    'include_detail' => TRUE,
+    'quiet' => TRUE,
+  ));
+some_function();
+$result = example_fetch_data($id,
+  [
+    'include_detail' => TRUE,
+    'quiet' => TRUE,
+  ]);
+some_function();
+
+// Indentation: multi line function call with array and closing brace on the
+// same line.
+watchdog('example', 'Some warning %code for %id',
+  array(
+    '%code' => $code,
+    '%doi' => $id,
+  ),
+  WATCHDOG_WARNING);
+watchdog('example', 'Some warning %code for %id',
+  [
+    '%code' => $code,
+    '%doi' => $id,
+  ],
+  WATCHDOG_WARNING);
+
+// Nested short array syntax.
+$x = [
+  'label' => x(['test' => 'bar']),
+];
+
+// Nested arrays with object operators.
+$derivatives["entity:$entity_type_id"] = array(
+  'label' => t('Create @entity_type path alias', array('@entity_type' => $entity_type->getLowercaseLabel())),
+  'category' => t('Path'),
+  'entity_type_id' => $entity_type_id,
+  'context' => array(
+    'entity' => ContextDefinition::create("entity:$entity_type_id")
+      ->setLabel($entity_type->getLabel())
+      ->setRequired(TRUE)
+      ->setDescription(t('The @entity_type for which to create a path alias.', array('@entity_type' => $entity_type->getLowercaseLabel()))),
+    'alias' => ContextDefinition::create('string')
+      ->setLabel(t('Path alias'))
+      ->setRequired(TRUE)
+      ->setDescription(t("Specify an alternative path by which the content can be accessed. For example, 'about' for an about page. Use a relative path and do not add a trailing slash.")),
+  ),
+  'provides' => array(),
+) + $base_plugin_definition;
+
+$derivatives["entity:$entity_type_id"] = [
+  'label' => t('Create @entity_type path alias', ['@entity_type' => $entity_type->getLowercaseLabel()]),
+  'category' => t('Path'),
+  'entity_type_id' => $entity_type_id,
+  'context' => [
+    'entity' => ContextDefinition::create("entity:$entity_type_id")
+      ->setLabel($entity_type->getLabel())
+      ->setRequired(TRUE)
+      ->setDescription(t('The @entity_type for which to create a path alias.', ['@entity_type' => $entity_type->getLowercaseLabel()])),
+    'alias' => ContextDefinition::create('string')
+      ->setLabel(t('Path alias'))
+      ->setRequired(TRUE)
+      ->setDescription(t("Specify an alternative path by which the content can be accessed. For example, 'about' for an about page. Use a relative path and do not add a trailing slash.")),
+  ],
+  'provides' => [],
+] + $base_plugin_definition;
+
+$test = array(
+  'columns' => $columns,
+  'indexes' => array(),
+  'foreign keys' => array(
+    'format' => array(
+      'table' => 'filter_format',
+      'columns' => array('format' => 'format'),
+    ),
+    'file_managed' => array(
+      'table' => 'file_managed',
+      'columns' => array('fid' => 'carousel_image'),
+    ),
+  ),
+);
+
+// Arrays by reference in arrays.
+$x = array('foo');
+$y = array(&$x);
+
+$x = ['foo'];
+$y = [&$x];
+
+// Multi-line function call with array and anonymous function.
+multiline_call(Inspector::assertAllCallable([
+  'strchr',
+  [$x, 'callMe'],
+  ['test', 'callMeStatic'],
+  function() {
+    return TRUE;
+  },
+]));
+multiline_call(Inspector::assertAllCallable(array(
+  'strchr',
+  array($x, 'callMe'),
+  array('test', 'callMeStatic'),
+  function() {
+    return TRUE;
+  },
+)));
+
+// Nested array indentation with closures.
+$options = array(
+  'value' => array(
+    'Callback' => array(
+      'callback' => function ($value, ExecutionContextInterface $context) {
+        TheaterItem::theaterValidate($value, $context);
+      },
+    ),
+  ),
+);
+
+$options = array(
+  'value' => [
+    'Callback' => array(
+      'callback' => function ($value, ExecutionContextInterface $context) {
+        TheaterItem::theaterValidate($value, $context);
+      },
+    ),
+  ],
 );
 
 // Item assignment operators must be prefixed and followed by a space.
@@ -243,6 +451,21 @@ function foo() {
 
     case 2:
       return 6;
+
+    case 3:
+      return array(
+        'whiz',
+        'bang',
+      );
+
+    case 4:
+      return helper_func(
+        'whiz',
+        'bang'
+      );
+
+    default:
+      throw new Exception();
   }
 }
 
@@ -272,7 +495,7 @@ do {
  *
  * @see example_reference()
  * @see Example::exampleMethod()
- * @see http://drupal.org
+ * @see https://www.drupal.org
  * @see http://example.com/see/documentation/is/allowed/to/exceed/eighty/characters
  */
 function foo_bar($field1, $field2, $field3 = NULL, &$field4 = NULL) {
@@ -313,7 +536,7 @@ $var = foo(
 /**
  * Class declaration.
  *
- * Classes always have a multiline comment
+ * Classes always have a multiline comment.
  */
 class Bar {
 
@@ -341,6 +564,16 @@ class Bar {
    */
   protected function barMethod() {
 
+  }
+
+  /**
+   * Test the ++ and -- operator.
+   */
+  public function incDecTest() {
+    $this->foo++;
+    $this->foo--;
+    --$this->foo;
+    ++$this->foo;
   }
 
 }
@@ -438,7 +671,7 @@ t('Link to Drupal\'s <a href="@url">admin pages</a>.', array('@url' => url('admi
 // Test inline comment style.
 // Comment one.
 t('x');
-// Comment two
+// Comment two.
 // @todo this is valid!
 t('x');
 // Goes on?
@@ -450,7 +683,12 @@ t('x');
 t('x');
 // @see http://example.com/with/a/very/long/link/that/is/longer/than/80/characters
 t('x');
+// http://example.com/with/a/very/long/link/that/is/longer/than/80/characters/really
+t('x');
 // @see my_function()
+t('x');
+// Some text here, then a reference.
+// @see \Drupal\rules\Entity\ReactionRuleStorage
 t('x');
 // t() refers to a function name and should not be capitalized.
 t('x');
@@ -602,7 +840,7 @@ watchdog('mymodule', 'Log message here.');
 // "=" oeprator.
 $batch =& batch_get();
 
-// Security issue: http://drupal.org/node/750148
+// Security issue: https://www.drupal.org/node/750148
 preg_match('/.+/i', 'subject');
 preg_match('/.+/imsuxADSUXJ', 'subject');
 preg_filter('/.+/i', 'replacement', 'subject');
@@ -640,6 +878,14 @@ class Foo implements FooInterface {
   public function test() {
     /** @var \Drupal\node\NodeInterface $node */
     $node = $this->entity;
+    /** @var \Drupal\node\NodeInterface[] $nodes */
+    $nodes = foo();
+    /** @var \Drupal\node\NodeInterface|\PHPUnit_Framework_MockObject_MockObject $node_mock */
+    $node_mock = mock_node();
+    /** @var \Drupal\SomeInterface4You $thing */
+    $thing = thing();
+    /** @var \Drupal\SomeInterface4You $test2 */
+    $test2 = test2();
     return $node;
   }
 
@@ -674,6 +920,15 @@ class Foo implements FooInterface {
    */
   public function test4() {
     return $this;
+  }
+
+  /**
+   * Omitting the comment when returning static is allowed.
+   *
+   * @return static
+   */
+  public function test41() {
+    return new static();
   }
 
   /**
@@ -718,6 +973,15 @@ class Foo implements FooInterface {
    */
   public function test5($contexts = []) {
     return 'test5';
+  }
+
+  /**
+   * Not documenting a "throws" tag is allowed.
+   *
+   * @throws Exception
+   */
+  public function test6() {
+    throw new Exception();
   }
 
 }
@@ -823,3 +1087,159 @@ $x = 'Some markup text with allowed HTML5 <br> tag';
  * )
  */
 class AliasDelete extends RulesActionBase implements ContainerFactoryPluginInterface {}
+
+/**
+ * Some comment with exclamation mark!
+ *
+ * And the long description!
+ *
+ * @param int $x
+ *   Exclamation mark allowed!
+ *
+ * @throws MyException
+ *   Exclamation mark allowed!
+ */
+function test8($x) {
+
+}
+
+/**
+ * Make sure that link tags are allowed in long descriptions.
+ *
+ * For forcing it to a boolean TRUE or FALSE please use
+ * @link MenuItem::forceAccessCallbackTRUE @endlink() or
+ * @link MenuItem::forceAccessCallbackFALSE @endlink() as you see fit.
+ */
+function test9() {
+
+}
+
+/**
+ * Link tags in the long description before param tags are allowed.
+ *
+ * Visit also:
+ * @link https://www.drupal.org/node/323101 Strings at well-known places: built-in menus, .. @endlink.
+ *
+ * @param string $title
+ *   The untranslated title of the menu item.
+ */
+function test10($title) {
+
+}
+
+/**
+ * Some description.
+ *
+ * @todo Here is a very long link that exceeds 80 charaters on the next line:
+ *   http://example.com/test/long/link/with/stuff/here/making/it/even/longer/now/so/that/it/shows
+ */
+function test11() {
+
+}
+
+/**
+ * Description here.
+ *
+ * @param array $array_param
+ *   We document here that the parameter is an array, but we don't use an array
+ *   type hint in the function signature which is allowed.
+ */
+function test12($array_param) {
+
+}
+
+/**
+ * Paramter docs with a long nested list.
+ *
+ * @param string $a
+ *   Lists are usually preceded by a line ending in a colon:
+ *   - Item in the list.
+ *   - Another item.
+ *     - key: Sub-list with keys, first item.
+ *     - key2: (optional) Second item with a key.
+ *   - Back to the outer list. Sometimes list items are quite long, in which
+ *     case you can wrap the text like this.
+ *   - Last item in the outer list.
+ *   Text that is outside of the list continues here.
+ */
+function test13($a) {
+
+}
+
+/**
+ * Using an alias type hint but the fully qualified name in the docs.
+ *
+ * @param \Drupal\some_module\ExampleClass $a
+ *   Example parameter.
+ */
+function test14(AliasedExampleClass $a) {
+
+}
+
+/**
+ * Example annotation that exceeds 80 characters several times, but is valid.
+ *
+ * @ConfigEntityType(
+ *   id = "rules_reaction_rule",
+ *   label = @Translation("Reaction Rule"),
+ *   handlers = {
+ *     "storage" = "Drupal\rules\Entity\ReactionRuleStorage",
+ *     "list_builder" = "Drupal\rules\Entity\Controller\RulesReactionListBuilder",
+ *     "form" = {
+ *        "add" = "\Drupal\rules\Entity\ReactionRuleAddForm",
+ *        "edit" = "\Drupal\rules\Entity\ReactionRuleEditForm",
+ *        "delete" = "\Drupal\Core\Entity\EntityDeleteForm"
+ *      }
+ *   },
+ *   admin_permission = "administer rules",
+ *   config_prefix = "reaction",
+ *   entity_keys = {
+ *     "id" = "id",
+ *     "label" = "label",
+ *     "status" = "status"
+ *   },
+ *   config_export = {
+ *     "id",
+ *     "label",
+ *     "event",
+ *     "module",
+ *     "description",
+ *     "tag",
+ *     "core",
+ *     "expression_id",
+ *     "configuration",
+ *   },
+ *   links = {
+ *     "collection" = "/admin/config/workflow/rules",
+ *     "edit-form" = "/admin/config/workflow/rules/reactions/edit/{rules_reaction_rule}",
+ *     "delete-form" = "/admin/config/workflow/rules/reactions/delete/{rules_reaction_rule}"
+ *   }
+ * )
+ */
+class ReactionRule extends ConfigEntityBase {
+
+  /**
+   * Config entities are allowed to have property names with underscores.
+   *
+   * @var string
+   */
+  protected $expression_id;
+
+}
+
+/**
+ * Test class.
+ */
+class OperatorTest {
+
+  protected static $seenIds;
+
+  /**
+   * Test method.
+   */
+  public function test() {
+    $id = $id . '--' . ++static::$seenIds[$id];
+    return $id;
+  }
+
+}

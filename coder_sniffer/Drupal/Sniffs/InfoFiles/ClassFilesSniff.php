@@ -44,15 +44,12 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
      */
     public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
+        // Only run this sniff once per info file.
+        $end = (count($phpcsFile->getTokens()) + 1);
+
         $fileExtension = strtolower(substr($phpcsFile->getFilename(), -4));
         if ($fileExtension !== 'info') {
-            return;
-        }
-
-        $tokens = $phpcsFile->getTokens();
-        // Only run this sniff once per info file.
-        if ($tokens[$stackPtr]['line'] !== 1) {
-            return;
+            return $end;
         }
 
         $contents = file_get_contents($phpcsFile->getFilename());
@@ -73,15 +70,20 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
                 // a class or interface definition.
                 $searchTokens = token_get_all(file_get_contents($fileName));
                 foreach ($searchTokens as $token) {
-                    if (is_array($token) === true && ($token[0] === T_CLASS || $token[0] === T_INTERFACE)) {
+                    if (is_array($token) === true
+                        && in_array($token[0], array(T_CLASS, T_INTERFACE, T_TRAIT)) === true
+                    ) {
                         continue 2;
                     }
                 }
+
                 $ptr   = self::getPtr('files[]', $file, $phpcsFile);
                 $error = "It's only necessary to declare files[] if they declare a class or interface.";
                 $phpcsFile->addError($error, $ptr, 'UnecessaryFileDeclaration');
             }//end foreach
         }//end if
+
+        return $end;
 
     }//end process()
 
@@ -94,7 +96,7 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
      * @param PHP_CodeSniffer_File $infoFile Info file to search in.
      *
      * @return int|false Returns the stack position if the file name is found, false
-     * 									 otherwise.
+     *                                      otherwise.
      */
     public static function getPtr($key, $value, PHP_CodeSniffer_File $infoFile)
     {
@@ -118,10 +120,11 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
      */
     public static function drupalParseInfoFormat($data)
     {
-        $info = array();
+        $info      = array();
         $constants = get_defined_constants();
 
-        if (preg_match_all('
+        if (preg_match_all(
+            '
           @^\s*                           # Start at the beginning of a line, ignoring leading whitespace
           ((?:
             [^=;\[\]]|                    # Key names cannot contain equal signs, semi-colons or square brackets,
@@ -133,43 +136,51 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
             (\'(?:[^\']|(?<=\\\\)\')*\')| # Single-quoted string, which may contain slash-escaped quotes/slashes
             ([^\r\n]*?)                   # Non-quoted string
           )\s*$                           # Stop at the next end of a line, ignoring trailing whitespace
-          @msx', $data, $matches, PREG_SET_ORDER)) {
-          foreach ($matches as $match) {
-            // Fetch the key and value string.
-            $i = 0;
-            foreach (array('key', 'value1', 'value2', 'value3') as $var) {
-              $$var = isset($match[++$i]) ? $match[$i] : '';
-            }
-            $value = stripslashes(substr($value1, 1, -1)) . stripslashes(substr($value2, 1, -1)) . $value3;
+          @msx',
+            $data,
+            $matches,
+            PREG_SET_ORDER
+        )) {
+            foreach ($matches as $match) {
+                // Fetch the key and value string.
+                $i = 0;
+                foreach (array('key', 'value1', 'value2', 'value3') as $var) {
+                    $$var = isset($match[++$i]) ? $match[$i] : '';
+                }
 
-            // Parse array syntax.
-            $keys = preg_split('/\]?\[/', rtrim($key, ']'));
-            $last = array_pop($keys);
-            $parent = &$info;
+                $value = stripslashes(substr($value1, 1, -1)).stripslashes(substr($value2, 1, -1)).$value3;
 
-            // Create nested arrays.
-            foreach ($keys as $key) {
-              if ($key == '') {
-                $key = count($parent);
-              }
-              if (!isset($parent[$key]) || !is_array($parent[$key])) {
-                $parent[$key] = array();
-              }
-              $parent = &$parent[$key];
-            }
+                // Parse array syntax.
+                $keys   = preg_split('/\]?\[/', rtrim($key, ']'));
+                $last   = array_pop($keys);
+                $parent = &$info;
 
-            // Handle PHP constants.
-            if (isset($constants[$value])) {
-              $value = $constants[$value];
-            }
+                // Create nested arrays.
+                foreach ($keys as $key) {
+                    if ($key == '') {
+                        $key = count($parent);
+                    }
 
-            // Insert actual value.
-            if ($last == '') {
-              $last = count($parent);
-            }
-            $parent[$last] = $value;
-          }
-        }
+                    if (!isset($parent[$key]) || !is_array($parent[$key])) {
+                        $parent[$key] = array();
+                    }
+
+                    $parent = &$parent[$key];
+                }
+
+                // Handle PHP constants.
+                if (isset($constants[$value])) {
+                    $value = $constants[$value];
+                }
+
+                // Insert actual value.
+                if ($last == '') {
+                    $last = count($parent);
+                }
+
+                $parent[$last] = $value;
+            }//end foreach
+        }//end if
 
         return $info;
 
@@ -177,5 +188,3 @@ class Drupal_Sniffs_InfoFiles_ClassFilesSniff implements PHP_CodeSniffer_Sniff
 
 
 }//end class
-
-?>
