@@ -57,6 +57,7 @@
  <rule ref="Drupal.Commenting.InlineComment.SpacingBefore"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Files.LineLength.TooLong"><severity>0</severity></rule>
+ <rule ref="Drupal.Strings.UnnecessaryStringConcat.Found"><severity>0</severity></rule>
 
  <!-- CIVICRM: These rules are distinctly inappropriate -->
  <rule ref="Drupal.Classes.InterfaceName.InterfaceSuffix"><severity>0</severity></rule>
