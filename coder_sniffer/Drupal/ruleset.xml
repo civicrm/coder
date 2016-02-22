@@ -14,6 +14,7 @@
  <rule ref="Drupal.Array.Array.LongLineDeclaration"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.ClassComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.Empty"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.LongFullStop"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.LongNotCapital"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.MissingShort"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.NonParamGroup"><severity>0</severity></rule>
@@ -30,11 +31,13 @@
  <rule ref="Drupal.Commenting.DocComment.TagGroupSpacing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagValueIndent"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagsNotGrouped"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FileComment.FileTag"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.SpacingAfterComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.EmptyThrows"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.Missing"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.MissingFile"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamType"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingReturnComment"><severity>0</severity></rule>
@@ -43,6 +46,7 @@
  <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNewLine"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNotCapital"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.ReturnNotRequired"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.ThrowsComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.TypeHintMissing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.VoidReturn"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.DocBlock"><severity>0</severity></rule>
