@@ -51,9 +51,8 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                 return array(
                         13 => 1,
                         16 => 1,
-                        53 => 1,
-                        59 => 1,
-                        66 => 1,
+                        51 => 1,
+                        58 => 1,
                        );
             case 'bad.module':
                 return array(
@@ -77,7 +76,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         21 => 1,
                         22 => 1,
                         24 => 1,
-                        25 => 1,
+                        25 => 2,
                         28 => 1,
                         31 => 1,
                         35 => 1,
@@ -147,7 +146,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         110 => 1,
                         111 => 1,
                         112 => 1,
-                        113 => 3,
+                        113 => 1,
                         114 => 1,
                         115 => 1,
                         116 => 1,
@@ -168,6 +167,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         142 => 3,
                         143 => 2,
                         144 => 3,
+                        146 => 1,
                         151 => 1,
                         160 => 1,
                         161 => 1,
@@ -187,11 +187,11 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         188 => 2,
                         192 => 1,
                         193 => 2,
-                        194 => 1,
-                        196 => 2,
+                        194 => 2,
+                        196 => 3,
                         198 => 2,
                         202 => 2,
-                        206 => 1,
+                        206 => 2,
                         209 => 1,
                         213 => 1,
                         214 => 1,
@@ -206,11 +206,11 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         245 => 1,
                         248 => 1,
                         249 => 2,
-                        253 => 2,
+                        253 => 3,
                         257 => 2,
                         263 => 1,
-                        267 => 1,
-                        271 => 1,
+                        269 => 1,
+                        273 => 1,
                         277 => 1,
                         279 => 2,
                         281 => 1,
@@ -295,12 +295,11 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         566 => 3,
                         575 => 1,
                         578 => 2,
-                        581 => 1,
                         588 => 1,
                         590 => 1,
                         592 => 1,
                         594 => 2,
-                        595 => 2,
+                        595 => 1,
                         596 => 1,
                         599 => 2,
                         601 => 2,
@@ -342,6 +341,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         735 => 1,
                         738 => 1,
                         741 => 1,
+                        744 => 1,
                         750 => 1,
                         756 => 1,
                         765 => 1,
@@ -362,11 +362,6 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         820 => 1,
                         827 => 1,
                         833 => 2,
-                       );
-            case 'bad.tpl.php':
-                return array(
-                        11 => 2,
-                        15 => 2,
                        );
         }
         return array();
@@ -435,7 +430,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
 
         foreach ($di as $file) {
             $path = $file->getPathname();
-            if ($path !== __FILE__ && $file->isFile()) {
+            if ($path !== __FILE__ && $file->isFile() && preg_match('/\.fixed$/', $path) !== 1) {
                 $testFiles[] = $path;
             }
         }

@@ -14,6 +14,7 @@
  <rule ref="Drupal.Array.Array.LongLineDeclaration"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.ClassComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.Empty"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DocComment.LongFullStop"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.LongNotCapital"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.MissingShort"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.NonParamGroup"><severity>0</severity></rule>
@@ -30,11 +31,13 @@
  <rule ref="Drupal.Commenting.DocComment.TagGroupSpacing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagValueIndent"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.DocComment.TagsNotGrouped"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FileComment.FileTag"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.SpacingAfterComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.EmptyThrows"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.Missing"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.MissingFile"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamType"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingReturnComment"><severity>0</severity></rule>
@@ -43,6 +46,7 @@
  <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNewLine"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.ParamCommentNotCapital"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.ReturnNotRequired"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.ThrowsComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.TypeHintMissing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.VoidReturn"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.DocBlock"><severity>0</severity></rule>
@@ -53,6 +57,7 @@
  <rule ref="Drupal.Commenting.InlineComment.SpacingBefore"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Files.LineLength.TooLong"><severity>0</severity></rule>
+ <rule ref="Drupal.Strings.UnnecessaryStringConcat.Found"><severity>0</severity></rule>
 
  <!-- CIVICRM: These rules are distinctly inappropriate -->
  <rule ref="Drupal.Classes.InterfaceName.InterfaceSuffix"><severity>0</severity></rule>
@@ -78,6 +83,7 @@
   <exclude-pattern>*.txt</exclude-pattern>
   <exclude-pattern>*.md</exclude-pattern>
   <exclude-pattern>*.info</exclude-pattern>
+  <exclude-pattern>*.yml</exclude-pattern>
  </rule>
 
  <rule ref="Drupal.Commenting.FileComment">
@@ -89,14 +95,6 @@
   <exclude-pattern>*.tpl.php</exclude-pattern>
  </rule>
  <rule ref="Drupal.ControlStructures.ControlSignature">
-  <!-- Do not run this sniff on template files. -->
-  <exclude-pattern>*.tpl.php</exclude-pattern>
- </rule>
- <rule ref="Drupal.ControlStructures.ElseCatchNewline">
-  <!-- Do not run this sniff on template files. -->
-  <exclude-pattern>*.tpl.php</exclude-pattern>
- </rule>
- <rule ref="Drupal.Formatting.DisallowCloseTag">
   <!-- Do not run this sniff on template files. -->
   <exclude-pattern>*.tpl.php</exclude-pattern>
  </rule>
@@ -120,11 +118,17 @@
  <rule ref="Generic.Functions.FunctionCallArgumentSpacing.NoSpaceAfterComma">
   <severity>0</severity>
  </rule>
+ <rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie">
+  <properties>
+   <property name="checkClosures" value="true"/>
+  </properties>
+ </rule>
 
  <rule ref="Generic.NamingConventions.ConstructorName" />
  <rule ref="Generic.NamingConventions.UpperCaseConstantName" />
  <rule ref="Generic.PHP.DeprecatedFunctions" />
  <rule ref="Generic.PHP.DisallowShortOpenTag" />
+ <rule ref="Generic.PHP.LowerCaseKeyword" />
  <rule ref="Generic.PHP.UpperCaseConstant" />
  <rule ref="Generic.WhiteSpace.DisallowTabIndent" />
 
@@ -169,6 +173,9 @@
  <rule ref="PEAR.Functions.FunctionCallSignature.CloseBracketLine">
   <severity>0</severity>
  </rule>
+ <rule ref="PEAR.Functions.FunctionCallSignature.EmptyLine">
+  <severity>0</severity>
+ </rule>
 
  <rule ref="PEAR.Functions.ValidDefaultValue" />
 
@@ -176,9 +183,6 @@
 
  <rule ref="Squiz.Arrays.ArrayDeclaration" />
  <!-- Disable some error messages that we do not want. -->
- <rule ref="Squiz.Arrays.ArrayDeclaration.CloseBraceNewLine">
-  <severity>0</severity>
- </rule>
  <rule ref="Squiz.Arrays.ArrayDeclaration.CloseBraceNotAligned">
   <severity>0</severity>
  </rule>
@@ -200,6 +204,9 @@
  <rule ref="Squiz.Arrays.ArrayDeclaration.NoCommaAfterLast">
   <severity>0</severity>
  </rule>
+ <rule ref="Squiz.Arrays.ArrayDeclaration.NotLowerCase">
+  <severity>0</severity>
+ </rule>
  <rule ref="Squiz.Arrays.ArrayDeclaration.SingleLineNotAllowed">
   <severity>0</severity>
  </rule>
@@ -212,11 +219,12 @@
 
  <rule ref="Squiz.Arrays.ArrayBracketSpacing" />
 
- <rule ref="Squiz.Classes.LowercaseClassKeywords" />
  <rule ref="Squiz.Commenting.DocCommentAlignment" />
- <!-- <rule ref="Squiz.Commenting.PostStatementComment" /> -->
  <rule ref="Squiz.ControlStructures.ForEachLoopDeclaration" />
  <!-- Disable some error messages that we already cover. -->
+ <rule ref="Squiz.ControlStructures.ForEachLoopDeclaration.AsNotLower">
+  <severity>0</severity>
+ </rule>
  <rule ref="Squiz.ControlStructures.ForEachLoopDeclaration.SpaceAfterOpen">
   <severity>0</severity>
  </rule>
@@ -231,8 +239,6 @@
  <rule ref="Squiz.ControlStructures.ForLoopDeclaration.SpacingBeforeClose">
   <severity>0</severity>
  </rule>
-
- <rule ref="Squiz.ControlStructures.LowercaseDeclaration" />
 
  <rule ref="Squiz.ControlStructures.SwitchDeclaration" />
  <!-- Disable some error messages that we do not want. -->
@@ -302,13 +308,24 @@
  <rule ref="Squiz.PHP.LowercasePHPFunctions" />
  <rule ref="Squiz.PHP.NonExecutableCode" />
  <rule ref="Squiz.Scope.MethodScope" />
+ <rule ref="Squiz.Strings.ConcatenationSpacing">
+  <properties>
+   <property name="spacing" value="1"/>
+   <property name="ignoreNewlines" value="true"/>
+  </properties>
+ </rule>
  <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing" />
  <rule ref="Squiz.WhiteSpace.SemicolonSpacing" />
  <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace" />
 
+ <rule ref="Zend.Files.ClosingTag">
+  <!-- Do not run this sniff on template files. -->
+  <exclude-pattern>*.tpl.php</exclude-pattern>
+ </rule>
+
  <!-- Ignore various version control directories. -->
- <exclude-pattern>*/.git/*</exclude-pattern>
- <exclude-pattern>*/.svn/*</exclude-pattern>
- <exclude-pattern>*/.hg/*</exclude-pattern>
- <exclude-pattern>*/.bzr/*</exclude-pattern>
+ <exclude-pattern>*/\.git/*</exclude-pattern>
+ <exclude-pattern>*/\.svn/*</exclude-pattern>
+ <exclude-pattern>*/\.hg/*</exclude-pattern>
+ <exclude-pattern>*/\.bzr/*</exclude-pattern>
 </ruleset>
