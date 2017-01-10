@@ -36,7 +36,6 @@
  <rule ref="Drupal.Commenting.FileComment.SpacingAfterComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.EmptyThrows"><severity>0</severity></rule>
- <rule ref="Drupal.Commenting.FunctionComment.Missing"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingFile"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamType"><severity>0</severity></rule>
