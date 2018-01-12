@@ -952,6 +952,8 @@ class Drupal_Sniffs_WhiteSpace_ScopeIndentSniff implements PHP_CodeSniffer_Sniff
                 }
 
                 $condition = $tokens[$tokens[$i]['scope_condition']]['code'];
+                // Hack for T_FINALLY to be properly opened
+                PHP_CodeSniffer_Tokens::$scopeOpeners[351] = 351;
                 if (isset(PHP_CodeSniffer_Tokens::$scopeOpeners[$condition]) === true
                     && in_array($condition, $this->nonIndentingScopes) === false
                 ) {
