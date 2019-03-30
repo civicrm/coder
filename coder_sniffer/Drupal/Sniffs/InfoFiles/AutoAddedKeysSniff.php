@@ -1,13 +1,17 @@
 <?php
 /**
- * Drupal_Sniffs_InfoFiles_RequiredSniff.
- *
- * PHP version 5
+ * \Drupal\Sniffs\InfoFiles\RequiredSniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace Drupal\Sniffs\InfoFiles;
+
+use Drupal\Sniffs\InfoFiles\ClassFilesSniff;
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * "version", "project" and "timestamp" are added automatically by drupal.org
@@ -17,7 +21,7 @@
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_InfoFiles_AutoAddedKeysSniff implements PHP_CodeSniffer_Sniff
+class AutoAddedKeysSniff implements Sniff
 {
 
 
@@ -36,60 +40,49 @@ class Drupal_Sniffs_InfoFiles_AutoAddedKeysSniff implements PHP_CodeSniffer_Snif
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token in the
-     *                                        stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token in the
+     *                                               stack passed in $tokens.
      *
-     * @return void
+     * @return int
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         // Only run this sniff once per info file.
-        $end = (count($phpcsFile->getTokens()) + 1);
-
         if (preg_match('/\.info$/', $phpcsFile->getFilename()) === 1) {
             // Drupal 7 style info file.
             $contents = file_get_contents($phpcsFile->getFilename());
-            $info     = Drupal_Sniffs_InfoFiles_ClassFilesSniff::drupalParseInfoFormat($contents);
+            $info     = ClassFilesSniff::drupalParseInfoFormat($contents);
         } else if (preg_match('/\.info\.yml$/', $phpcsFile->getFilename()) === 1) {
             // Drupal 8 style info.yml file.
             $contents = file_get_contents($phpcsFile->getFilename());
             try {
-                // Installations via Composer: make sure that we autoload the YAML
-                // dependency.
-                // @todo: Remove this once PHPCS does that, see
-                // https://github.com/squizlabs/PHP_CodeSniffer/pull/833
-                if (file_exists($a = dirname(__FILE__).'/../../../../../../autoload.php') === true) {
-                    include_once $a;
-                } else if (file_exists($a = dirname(__FILE__).'/../../../../vendor/autoload.php') === true) {
-                    include_once $a;
-                }
                 $info = \Symfony\Component\Yaml\Yaml::parse($contents);
             } catch (\Symfony\Component\Yaml\Exception\ParseException $e) {
                 // If the YAML is invalid we ignore this file.
-                return $end;
+                return ($phpcsFile->numTokens + 1);
             }
         } else {
-            return $end;
+            return ($phpcsFile->numTokens + 1);
         }
 
         if (isset($info['project']) === true) {
-            $warning = 'Remove "project" form the info file, it will be added by drupal.org packaging automatically';
+            $warning = 'Remove "project" from the info file, it will be added by drupal.org packaging automatically';
             $phpcsFile->addWarning($warning, $stackPtr, 'Project');
         }
 
         if (isset($info['timestamp']) === true) {
-            $warning = 'Remove "timestamp" form the info file, it will be added by drupal.org packaging automatically';
+            $warning = 'Remove "timestamp" from the info file, it will be added by drupal.org packaging automatically';
             $phpcsFile->addWarning($warning, $stackPtr, 'Timestamp');
         }
 
         // "version" is special: we want to allow it in core, but not anywhere else.
         if (isset($info['version']) === true && strpos($phpcsFile->getFilename(), '/core/') === false) {
-            $warning = 'Remove "version" form the info file, it will be added by drupal.org packaging automatically';
+            $warning = 'Remove "version" from the info file, it will be added by drupal.org packaging automatically';
             $phpcsFile->addWarning($warning, $stackPtr, 'Version');
         }
 
-        return $end;
+        return ($phpcsFile->numTokens + 1);
 
     }//end process()
 

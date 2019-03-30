@@ -1,13 +1,16 @@
 <?php
 /**
- * Drupal_Sniffs_InfoFiles_DuplicateEntrySniff.
- *
- * PHP version 5
+ * \Drupal\Sniffs\InfoFiles\DuplicateEntrySniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace Drupal\Sniffs\InfoFiles;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * Make sure that entries in info files are specified only once.
@@ -16,7 +19,7 @@
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_InfoFiles_DuplicateEntrySniff implements PHP_CodeSniffer_Sniff
+class DuplicateEntrySniff implements Sniff
 {
 
 
@@ -35,32 +38,30 @@ class Drupal_Sniffs_InfoFiles_DuplicateEntrySniff implements PHP_CodeSniffer_Sni
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token in the
-     *                                        stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token in the
+     *                                               stack passed in $tokens.
      *
-     * @return void
+     * @return int
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         // Only run this sniff once per info file.
-        $end = (count($phpcsFile->getTokens()) + 1);
-
         $fileExtension = strtolower(substr($phpcsFile->getFilename(), -4));
         if ($fileExtension !== 'info') {
-            return $end;
+            return ($phpcsFile->numTokens + 1);
         }
 
         $contents   = file_get_contents($phpcsFile->getFilename());
         $duplicates = $this->findDuplicateInfoFileEntries($contents);
-        if (!empty($duplicates)) {
+        if (empty($duplicates) === false) {
             foreach ($duplicates as $duplicate) {
                 $error = 'Duplicate entry for "%s" in info file';
                 $phpcsFile->addError($error, $stackPtr, 'DuplicateEntry', array($duplicate));
             }
         }
 
-        return $end;
+        return ($phpcsFile->numTokens + 1);
 
     }//end process()
 
@@ -95,12 +96,17 @@ class Drupal_Sniffs_InfoFiles_DuplicateEntrySniff implements PHP_CodeSniffer_Sni
             $data,
             $matches,
             PREG_SET_ORDER
-        )) {
+        ) !== false
+        ) {
             foreach ($matches as $match) {
                 // Fetch the key and value string.
                 $i = 0;
                 foreach (array('key', 'value1', 'value2', 'value3') as $var) {
-                    $$var = isset($match[++$i]) ? $match[$i] : '';
+                    if (isset($match[++$i]) === true) {
+                        $$var = $match[$i];
+                    } else {
+                        $$var = '';
+                    }
                 }
 
                 $value = stripslashes(substr($value1, 1, -1)).stripslashes(substr($value2, 1, -1)).$value3;
@@ -112,11 +118,11 @@ class Drupal_Sniffs_InfoFiles_DuplicateEntrySniff implements PHP_CodeSniffer_Sni
 
                 // Create nested arrays.
                 foreach ($keys as $key) {
-                    if ($key == '') {
+                    if ($key === '') {
                         $key = count($parent);
                     }
 
-                    if (!isset($parent[$key]) || !is_array($parent[$key])) {
+                    if (isset($parent[$key]) === false || is_array($parent[$key]) === false) {
                         $parent[$key] = array();
                     }
 
@@ -124,16 +130,16 @@ class Drupal_Sniffs_InfoFiles_DuplicateEntrySniff implements PHP_CodeSniffer_Sni
                 }
 
                 // Handle PHP constants.
-                if (isset($constants[$value])) {
+                if (isset($constants[$value]) === true) {
                     $value = $constants[$value];
                 }
 
                 // Insert actual value.
-                if ($last == '') {
+                if ($last === '') {
                     $last = count($parent);
                 }
 
-                if (array_key_exists($last, $parent)) {
+                if (array_key_exists($last, $parent) === true) {
                     $duplicates[] = $last;
                 }
 

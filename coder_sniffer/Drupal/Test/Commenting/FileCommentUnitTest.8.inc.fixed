@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Bla.
- */
+namespace Blah;
 
 /**
- *
+ * Bla.
  */
-class Pum {
+interface Pum {
 
 }

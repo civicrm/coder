@@ -2,24 +2,29 @@
 /**
  * Verifies that control statements conform to their coding standards.
  *
- * PHP version 5
- *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\ControlStructures;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+use PHP_CodeSniffer\Util\Tokens;
+
 /**
  * Verifies that control statements conform to their coding standards.
  *
- * Largely copied from Squiz_Sniffs_ControlStructures_ControlSignatureSniff and
- * adapted for Drupal's else on new lines.
+ * Largely copied from
+ * \PHP_CodeSniffer\Standards\Squiz\Sniffs\ControlStructures\ControlSignatureSniff
+ * and adapted for Drupal's else on new lines.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeSniffer_Sniff
+class ControlSignatureSniff implements Sniff
 {
 
     /**
@@ -59,15 +64,19 @@ class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeS
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token in the
-     *                                        stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token in the
+     *                                               stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
+
+        if (isset($tokens[($stackPtr + 1)]) === false) {
+            return;
+        }
 
         // Single space after the keyword.
         $found = 1;
@@ -107,15 +116,20 @@ class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeS
             $content = $phpcsFile->getTokensAsString(($closer + 1), ($opener - $closer - 1));
 
             if ($content !== ' ') {
-                $error = 'Expected 1 space after closing parenthesis; found "%s"';
-                $data  = array(str_replace($phpcsFile->eolChar, '\n', $content));
-                $fix   = $phpcsFile->addFixableError($error, $closer, 'SpaceAfterCloseParenthesis', $data);
+                $error = 'Expected 1 space after closing parenthesis; found %s';
+                if (trim($content) === '') {
+                    $found = strlen($content);
+                } else {
+                    $found = '"'.str_replace($phpcsFile->eolChar, '\n', $content).'"';
+                }
+
+                $fix = $phpcsFile->addFixableError($error, $closer, 'SpaceAfterCloseParenthesis', array($found));
                 if ($fix === true) {
                     if ($closer === ($opener - 1)) {
                         $phpcsFile->fixer->addContent($closer, ' ');
                     } else {
                         $phpcsFile->fixer->beginChangeset();
-                        $phpcsFile->fixer->addContent($closer, ' {');
+                        $phpcsFile->fixer->addContent($closer, ' '.$tokens[$opener]['content']);
                         $phpcsFile->fixer->replaceToken($opener, '');
 
                         if ($tokens[$opener]['line'] !== $tokens[$closer]['line']) {
@@ -133,29 +147,50 @@ class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeS
             }//end if
         }//end if
 
-        // Newline after opening brace.
+        // Single newline after opening brace.
         if (isset($tokens[$stackPtr]['scope_opener']) === true) {
             $opener = $tokens[$stackPtr]['scope_opener'];
-            $next   = $phpcsFile->findNext(T_WHITESPACE, ($opener + 1), null, true);
-            $found  = ($tokens[$next]['line'] - $tokens[$opener]['line']);
-            if ($found < 1) {
-                $error = 'Expected 1 newline after opening brace; %s found';
-                $data  = array($found);
-                $fix   = $phpcsFile->addFixableError($error, $opener, 'NewlineAfterOpenBrace', $data);
+            for ($next = ($opener + 1); $next < $phpcsFile->numTokens; $next++) {
+                $code = $tokens[$next]['code'];
+
+                if ($code === T_WHITESPACE
+                    || ($code === T_INLINE_HTML
+                    && trim($tokens[$next]['content']) === '')
+                ) {
+                    continue;
+                }
+
+                // Skip all empty tokens on the same line as the opener.
+                if ($tokens[$next]['line'] === $tokens[$opener]['line']
+                    && (isset(Tokens::$emptyTokens[$code]) === true
+                    || $code === T_CLOSE_TAG)
+                ) {
+                    continue;
+                }
+
+                // We found the first bit of a code, or a comment on the
+                // following line.
+                break;
+            }//end for
+
+            if ($tokens[$next]['line'] === $tokens[$opener]['line']) {
+                $error = 'Newline required after opening brace';
+                $fix   = $phpcsFile->addFixableError($error, $opener, 'NewlineAfterOpenBrace');
                 if ($fix === true) {
                     $phpcsFile->fixer->beginChangeset();
                     for ($i = ($opener + 1); $i < $next; $i++) {
-                        if ($found > 0 && $tokens[$i]['line'] === $tokens[$next]['line']) {
+                        if (trim($tokens[$i]['content']) !== '') {
                             break;
                         }
 
+                        // Remove whitespace.
                         $phpcsFile->fixer->replaceToken($i, '');
                     }
 
                     $phpcsFile->fixer->addContent($opener, $phpcsFile->eolChar);
                     $phpcsFile->fixer->endChangeset();
                 }
-            }
+            }//end if
         } else if ($tokens[$stackPtr]['code'] === T_WHILE) {
             // Zero spaces after parenthesis closer.
             $closer = $tokens[$stackPtr]['parenthesis_closer'];
@@ -179,9 +214,7 @@ class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeS
         }//end if
 
         // Only want to check multi-keyword structures from here on.
-        if ($tokens[$stackPtr]['code'] === T_TRY
-            || $tokens[$stackPtr]['code'] === T_DO
-        ) {
+        if ($tokens[$stackPtr]['code'] === T_DO) {
             $closer = false;
             if (isset($tokens[$stackPtr]['scope_closer']) === true) {
                 $closer = $tokens[$stackPtr]['scope_closer'];
@@ -220,8 +253,9 @@ class Drupal_Sniffs_ControlStructures_ControlSignatureSniff implements PHP_CodeS
             }//end if
         } else if ($tokens[$stackPtr]['code'] === T_ELSE
             || $tokens[$stackPtr]['code'] === T_ELSEIF
+            || $tokens[$stackPtr]['code'] === T_CATCH
         ) {
-            $closer = $phpcsFile->findPrevious(PHP_CodeSniffer_Tokens::$emptyTokens, ($stackPtr - 1), null, true);
+            $closer = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($stackPtr - 1), null, true);
             if ($closer === false || $tokens[$closer]['code'] !== T_CLOSE_CURLY_BRACKET) {
                 return;
             }

@@ -61,3 +61,27 @@ function example_custom_block_view($delta = '') {
   }
   return $block;
 }
+
+/**
+ * Test class with properties.
+ */
+class Test {
+
+  /**
+   * Wrong style with var keyword, but the doc block is fine.
+   */
+  public $varStyle;
+
+}
+
+// People want to pretty-format their numbered lists, do not throw an error for
+// this:
+// 1. A link has the current path in its 'data-drupal-link-system-path'
+//    attribute.
+// 2. We are on the front page and a link has the special '<front>' value in
+//    its 'data-drupal-link-system-path' attribute.
+// 3. This one is super correct, I tell you. What more can I write so that the
+//    line gets longer?
+// 4. No indentation on the next line is also fine as I'm going to demonstrate
+// here.
+test();

@@ -1,6 +1,10 @@
 <?php
 
-class Drupal_Sniffs_WhiteSpace_ScopeIndentUnitTest extends CoderSniffUnitTest
+namespace Drupal\Sniffs\WhiteSpace;
+
+use Drupal\Test\CoderSniffUnitTest;
+
+class ScopeIndentUnitTest extends CoderSniffUnitTest
 {
 
     /**
@@ -11,31 +15,15 @@ class Drupal_Sniffs_WhiteSpace_ScopeIndentUnitTest extends CoderSniffUnitTest
      *
      * @return array(int => int)
      */
-    public function getErrorList($testFile)
+    public function getErrorList($testFile = NULL)
     {
-        switch ($testFile) {
-            case 'ScopeIndentUnitTest.1.js':
-                return array(
-                        3 => 1,
-                        6 => 1,
-                        10 => 1,
-                        11 => 1,
-                        12 => 1,
-                        13 => 1,
-                        18 => 1,
-                        21 => 1,
-                        22 => 1,
-                        23 => 1,
-                        24 => 1,
-                        27 => 1,
-                       );
-            default:
-                return array(
-                        6 => 1,
-                        18 => 1,
-                        20 => 1,
-                       );
-        }
+        return array(
+                6 => 1,
+                18 => 1,
+                20 => 1,
+                32 => 1,
+                34 => 1,
+               );
 
     }//end getErrorList()
 
@@ -48,7 +36,7 @@ class Drupal_Sniffs_WhiteSpace_ScopeIndentUnitTest extends CoderSniffUnitTest
      *
      * @return array(int => int)
      */
-    public function getWarningList($testFile)
+    public function getWarningList($testFile = NULL)
     {
         return array();
 

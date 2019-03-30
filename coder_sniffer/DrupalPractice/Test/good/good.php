@@ -140,3 +140,30 @@ class ClosureTest extends TestCase {
   }
 
 }
+
+// Unused variable test.
+$clicks = array();
+$places = array();
+
+$debug = '';
+enumerate_menu('primary', function ($item) use (&$places, &$debug, &$clicks) {
+  $pos = array_pop($places);
+  $n_clicks = 34 - $pos;
+  generateClicks($item['node'], $n_clicks);
+  $clicks[$item['mlid']] = $n_clicks;
+  $debug .= "\nLink {$item['node']->title} got $n_clicks clicks and should end on $pos place.";
+});
+
+class PrivateMethodTest {
+
+  /**
+   * This private method is used as array filter callback, so not unused.
+   */
+  private function usedAsCallback() {
+    return FALSE;
+  }
+
+  public function test() {
+    return array_filter(array(), [$this, 'usedAsCallback']);
+  }
+}

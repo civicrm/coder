@@ -1,13 +1,16 @@
 <?php
 /**
- * DrupalPractice_Sniffs_FunctionCalls_VariableSetSanitizeSniff
- *
- * PHP version 5
+ * \DrupalPractice\Sniffs\FunctionCalls\VariableSetSanitizeSniff
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace DrupalPractice\Sniffs\FunctionCalls;
+
+use PHP_CodeSniffer\Files\File;
+use Drupal\Sniffs\Semantics\FunctionCall;
 
 /**
  * Check that variable_set() calls do not run check_plain() or other
@@ -17,7 +20,7 @@
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class DrupalPractice_Sniffs_FunctionCalls_VariableSetSanitizeSniff extends Drupal_Sniffs_Semantics_FunctionCall
+class VariableSetSanitizeSniff extends FunctionCall
 {
 
 
@@ -36,19 +39,18 @@ class DrupalPractice_Sniffs_FunctionCalls_VariableSetSanitizeSniff extends Drupa
     /**
      * Processes this function call.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile
-     *   The file being scanned.
-     * @param int                  $stackPtr
-     *   The position of the function call in the stack.
-     * @param int                  $openBracket
-     *   The position of the opening parenthesis in the stack.
-     * @param int                  $closeBracket
-     *   The position of the closing parenthesis in the stack.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile    The file being scanned.
+     * @param int                         $stackPtr     The position of the function call in
+     *                                                  the stack.
+     * @param int                         $openBracket  The position of the opening
+     *                                                  parenthesis in the stack.
+     * @param int                         $closeBracket The position of the closing
+     *                                                  parenthesis in the stack.
      *
      * @return void
      */
     public function processFunctionCall(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $openBracket,
         $closeBracket
@@ -65,7 +67,8 @@ class DrupalPractice_Sniffs_FunctionCalls_VariableSetSanitizeSniff extends Drupa
              'filter_xss',
              'filter_xss_admin',
             )
-        ) === true) {
+        ) === true
+        ) {
             $warning = 'Do not use the %s() sanitization function when writing values to the database, use it on output to HTML instead';
             $data    = array($tokens[$argument['start']]['content']);
             $phpcsFile->addWarning($warning, $argument['start'], 'VariableSet', $data);

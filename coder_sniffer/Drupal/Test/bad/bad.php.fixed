@@ -75,8 +75,8 @@ $i > 0;
 $i < 0;
 $i >= 0;
 $i <= 0;
-$i  += 0;
-$i  -= 0;
+$i += 0;
+$i -= 0;
 $i == 0;
 $i === 0;
 $i !== 0;
@@ -319,7 +319,7 @@ if (TRUE) {
  *   Doxygen style comments
  *
  * @return
- *  Doxygen style comments
+ *   Doxygen style comments
  */
 function foo($field1, $field2, $field3 = NULL) {
   $system["description"] = t("This module inserts funny text into posts randomly.");
@@ -365,20 +365,30 @@ $var = foo(
  * Curly brace has to be on the same line.
  */
 class Bar {
-  // Private properties must not have a prefix.
+  /**
+   * Private properties must not have a prefix.
+   */
   private $_secret = 1;
 
-  // Public properties must not have a prefix.
+  /**
+   * Public properties must not have a prefix.
+   */
   protected $_foo = 1;
 
-  // Public properties must not have a prefix.
+  /**
+   * Public properties must not have a prefix.
+   */
   public $_bar = 1;
 
-  // Public static variables use camelCase.
+  /**
+   * Public static variables use camelCase.
+   */
   public static $base_path = NULL;
 
-  // "var" keyword must no be used.
-  var $x = 5;
+  /**
+   * "var" keyword must no be used.
+   */
+  public $x = 5;
 
 }
 
@@ -414,6 +424,7 @@ $i . C_TEST;
  *
  */
 class FunctionTest {
+
   /**
    *
    */
@@ -569,7 +580,7 @@ function test7() {
 /**
  * Param tags must come first.
  *
- * @return array()
+ * @return array
  *
  * @param int $x
  *   A number.
@@ -623,7 +634,7 @@ function test10($x) {
  * @return bool This description should be on the next line.
  *
  * @see Too much space here
- * @see my_function().
+ * @see my_function()
  * @see foo_bar() and here some not allowed text.
  */
 function test11($x, $y, $z, $a, $b) {
@@ -659,7 +670,7 @@ function test14() {
 /**
  * Return data type documentation must not be the variable name.
  *
- * @return $foo
+ * @return foo
  *   Description bla.
  */
 function test15() {
@@ -677,7 +688,7 @@ function test16() {
 /**
  * Invalid data types.
  *
- * @param string or int or object... $x
+ * @param mixed $x
  *   Description here.
  * @param bool $y
  *   Description here.
@@ -692,14 +703,14 @@ function test17($x, $y) {
 /**
  * Too much space after the function keyword.
  */
-function  test18() {
+function test18() {
 
 }
 
 /**
  * Space before opening parenthesis is not allowed.
  */
-function test19 () {
+function test19() {
 
 }
 
@@ -813,10 +824,12 @@ function test27() {
   dsm($var);
   dpm($var);
 }
+
 /**
  *
  */
 class FooBar2 {
+
   /**
    * Function body should be on a line by itself, same for the closing brace.
    */

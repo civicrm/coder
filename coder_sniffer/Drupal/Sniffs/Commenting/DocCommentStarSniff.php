@@ -1,13 +1,16 @@
 <?php
 /**
- * Drupal_Sniffs_Commenting_DocCommentStarSniff
- *
- * PHP version 5
+ * \Drupal\Sniffs\Commenting\DocCommentStarSniff
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace Drupal\Sniffs\Commenting;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * Checks that a doc comment block has a doc comment star on every line.
@@ -16,7 +19,7 @@
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_Commenting_DocCommentStarSniff implements PHP_CodeSniffer_Sniff
+class DocCommentStarSniff implements Sniff
 {
 
 
@@ -35,13 +38,13 @@ class Drupal_Sniffs_Commenting_DocCommentStarSniff implements PHP_CodeSniffer_Sn
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
 
@@ -58,7 +61,15 @@ class Drupal_Sniffs_Commenting_DocCommentStarSniff implements PHP_CodeSniffer_Sn
                     $error = 'Doc comment star missing';
                     $fix   = $phpcsFile->addFixableError($error, $i, 'StarMissing');
                     if ($fix === true) {
-                        $phpcsFile->fixer->replaceToken($i, str_repeat(' ', $tokens[$stackPtr]['column']).'* ');
+                        if (strpos($tokens[$i]['content'], $phpcsFile->eolChar) !== false) {
+                            $phpcsFile->fixer->replaceToken($i, str_repeat(' ', $tokens[$stackPtr]['column'])."* \n");
+                        } else {
+                            $phpcsFile->fixer->replaceToken($i, str_repeat(' ', $tokens[$stackPtr]['column']).'* ');
+                        }
+
+                        // Ordering of lines might have changed - stop here. The
+                        // fixer will restart the sniff if there are remaining fixes.
+                        return;
                     }
                 }
             } else if ($tokens[$i]['code'] !== T_DOC_COMMENT_STAR) {
@@ -67,7 +78,7 @@ class Drupal_Sniffs_Commenting_DocCommentStarSniff implements PHP_CodeSniffer_Sn
                 if ($fix === true) {
                     $phpcsFile->fixer->addContentBefore($i, str_repeat(' ', $tokens[$stackPtr]['column']).'* ');
                 }
-            }
+            }//end if
 
             $lastLineChecked = $tokens[$i]['line'];
         }//end for
