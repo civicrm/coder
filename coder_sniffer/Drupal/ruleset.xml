@@ -37,7 +37,10 @@
  <rule ref="Drupal.Commenting.FileComment.NamespaceNoFileDoc"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FileComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.EmptyThrows"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.IncorrectParamVarName"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.IncorrectVarType"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.Missing"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.FunctionComment.InvalidReturn"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingFile"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamComment"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.FunctionComment.MissingParamType"><severity>0</severity></rule>
@@ -57,8 +60,13 @@
  <rule ref="Drupal.Commenting.InlineComment.SpacingAfter"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.SpacingBefore"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.WrongStyle"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.VariableComment.IncorrectParamVarName"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.VariableComment.IncorrectVarType"><severity>0</severity></rule>
  <rule ref="Drupal.Files.LineLength.TooLong"><severity>0</severity></rule>
  <rule ref="Drupal.Strings.UnnecessaryStringConcat.Found"><severity>0</severity></rule>
+ <rule ref="Drupal.Formatting.MultipleStatementAlignment.NotSame"><severity>0</severity></rule>
+ <rule ref="Squiz.Functions.MultiLineFunctionDeclaration.OneParamPerLine"><severity>0</severity></rule>
+ <rule ref="Drupal.Classes.PropertyDeclaration.Underscore"><severity>0</severity></rule>
 
  <!-- CIVICRM: These rules are distinctly inappropriate -->
  <rule ref="Drupal.Classes.InterfaceName.InterfaceSuffix"><severity>0</severity></rule>
