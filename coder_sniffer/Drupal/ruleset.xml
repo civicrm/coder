@@ -7,6 +7,7 @@
 
  <!-- CIVICRM: These are troubling </osterich> -->
  <rule ref="Squiz.PHP.NonExecutableCode.Unreachable"><severity>0</severity></rule>
+ <rule ref="Generic.CodeAnalysis.UselessOverridingMethod.Found"><severity>0</severity></rule>
  <rule ref="PEAR.Functions.ValidDefaultValue.NotAtEnd"><severity>0</severity></rule>
 
  <!-- CIVICRM: The following are decent checks, but they're currently impractical. -->
