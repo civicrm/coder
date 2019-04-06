@@ -2,24 +2,28 @@
 /**
  * Ensures doc blocks follow basic formatting.
  *
- * PHP version 5
- *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\Commenting;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+
 /**
  * Ensures doc blocks follow basic formatting.
  *
- * Largely copied from Generic_Sniffs_Commenting_DocCommentSniff, but Drupal @file
- * comments are different.
+ * Largely copied from
+ * \PHP_CodeSniffer\Standards\Generic\Sniffs\Commenting\DocCommentSniff,
+ * but Drupal @file comments are different.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
+class DocCommentSniff implements Sniff
 {
 
     /**
@@ -48,13 +52,13 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens       = $phpcsFile->getTokens();
         $commentEnd   = $phpcsFile->findNext(T_DOC_COMMENT_CLOSE_TAG, ($stackPtr + 1));
@@ -74,7 +78,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
         }
 
         // Ignore doc blocks in functions, this is handled by InlineCommentSniff.
-        if (!empty($tokens[$stackPtr]['conditions']) && in_array(T_FUNCTION, $tokens[$stackPtr]['conditions'])) {
+        if (empty($tokens[$stackPtr]['conditions']) === false && in_array(T_FUNCTION, $tokens[$stackPtr]['conditions']) === true) {
             return;
         }
 
@@ -117,7 +121,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
         }
 
         // The short description of @file comments is one line below.
-        if ($tokens[$short]['code'] === T_DOC_COMMENT_TAG && $tokens[$short]['content'] == '@file') {
+        if ($tokens[$short]['code'] === T_DOC_COMMENT_TAG && $tokens[$short]['content'] === '@file') {
             $next = $phpcsFile->findNext($empty, ($short + 1), $commentEnd, true);
             if ($next !== false) {
                 $fileShort = $short;
@@ -127,7 +131,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
 
         // Do not check defgroup sections, they have no short description. Also don't
         // check PHPUnit tests doc blocks because they might not have a description.
-        if (in_array($tokens[$short]['content'], array('@defgroup', '@addtogroup', '@}', '@coversDefaultClass'))) {
+        if (in_array($tokens[$short]['content'], array('@defgroup', '@addtogroup', '@}', '@coversDefaultClass')) === true) {
             return;
         }
 
@@ -138,12 +142,23 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
             if ($phpcsFile->tokenizerType === 'JS') {
                 return;
             }
+
+            // PHPUnit test methods are allowed to skip the short description and
+            // only provide an @covers annotation.
+            if ($tokens[$short]['content'] === '@covers') {
+                return;
+            }
+
             $error = 'Missing short description in doc comment';
             $phpcsFile->addError($error, $stackPtr, 'MissingShort');
             return;
         }
 
-        $start = isset($fileShort) === true ? $fileShort : $stackPtr;
+        if (isset($fileShort) === true) {
+            $start = $fileShort;
+        } else {
+            $start = $stackPtr;
+        }
 
         // No extra newline before short description.
         if ($tokens[$short]['line'] !== ($tokens[$start]['line'] + 1)) {
@@ -173,8 +188,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
             if ($fix === true) {
                 if ($tokens[($short - 1)]['code'] === T_DOC_COMMENT_WHITESPACE) {
                     $phpcsFile->fixer->replaceToken(($short - 1), ' ');
-                }
-                else {
+                } else {
                     $phpcsFile->fixer->addContent(($short - 1), ' ');
                 }
             }
@@ -221,7 +235,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
         }
 
         $lastChar = substr($shortContent, -1);
-        if (in_array($lastChar, array('.', '!', '?')) === false && $shortContent !== '{@inheritdoc}'
+        if (in_array($lastChar, array('.', '!', '?', ')')) === false && $shortContent !== '{@inheritdoc}'
             // Ignore Features module export files that just use the file name as
             // comment.
             && $shortContent !== basename($phpcsFile->getFilename())
@@ -320,7 +334,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
         $prev     = $phpcsFile->findPrevious($empty, ($firstTag - 1), $stackPtr, true);
         // This does not apply to @file, @code, @link and @endlink tags.
         if ($tokens[$firstTag]['line'] !== ($tokens[$prev]['line'] + 2)
-            && !isset($fileShort)
+            && isset($fileShort) === false
             && in_array($tokens[$firstTag]['content'], array('@code', '@link', '@endlink')) === false
         ) {
             $error = 'There must be exactly one blank line before the tags in a doc comment';
@@ -363,7 +377,7 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
                 }
 
                 $isNewGroup = $tokens[$prev]['line'] !== ($tokens[$tag]['line'] - 1);
-                if ($isNewGroup) {
+                if ($isNewGroup === true) {
                     $groupid++;
                 }
             }
@@ -383,10 +397,11 @@ class Drupal_Sniffs_Commenting_DocCommentSniff implements PHP_CodeSniffer_Sniff
                     $paramGroupid = $groupid;
                 }
 
-                // Every new tag section should be separated by a blank line.
-                // Exclude @code and @link.
+                // The @param, @return and @throws tag sections should be
+                // separated by a blank line both before and after these sections.
             } else if ($isNewGroup === false
-                && !in_array($currentTag, array('@code', '@endcode', '@link', '@endlink'))
+                && (in_array($currentTag, array('@param', '@return', '@throws')) === true
+                || in_array($previousTag, array('@param', '@return', '@throws')) === true)
                 && $previousTag !== $currentTag
             ) {
                 $error = 'Separate the %s and %s sections by a blank line.';

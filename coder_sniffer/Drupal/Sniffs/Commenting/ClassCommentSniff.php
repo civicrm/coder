@@ -2,16 +2,20 @@
 /**
  * Parses and verifies the class doc comment.
  *
- * PHP version 5
- *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\Commenting;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+use PHP_CodeSniffer\Util\Tokens;
+
 /**
  * Checks that comment doc blocks exist on classes, interfaces and traits. Largely
- * copied from Squiz_Sniffs_Commenting_ClassCommentSniff.
+ * copied from PHP_CodeSniffer\Standards\Squiz\Sniffs\Commenting\ClassCommentSniff.
  *
  * @category  PHP
  * @package   PHP_CodeSniffer
@@ -21,7 +25,7 @@
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_Commenting_ClassCommentSniff implements PHP_CodeSniffer_Sniff
+class ClassCommentSniff implements Sniff
 {
 
 
@@ -44,16 +48,16 @@ class Drupal_Sniffs_Commenting_ClassCommentSniff implements PHP_CodeSniffer_Snif
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
-        $find   = PHP_CodeSniffer_Tokens::$methodPrefixes;
+        $find   = Tokens::$methodPrefixes;
         $find[] = T_WHITESPACE;
         $name   = $tokens[$stackPtr]['content'];
 
@@ -70,27 +74,21 @@ class Drupal_Sniffs_Commenting_ClassCommentSniff implements PHP_CodeSniffer_Snif
         }
 
         // Try and determine if this is a file comment instead of a class comment.
-        // We assume that if this is the first comment after the open PHP tag, then
-        // it is most likely a file comment instead of a class comment.
         if ($tokens[$commentEnd]['code'] === T_DOC_COMMENT_CLOSE_TAG) {
             $start = ($tokens[$commentEnd]['comment_opener'] - 1);
         } else {
             $start = ($commentEnd - 1);
         }
 
-        $prev = $phpcsFile->findPrevious(T_WHITESPACE, $start, null, true);
-        if ($tokens[$prev]['code'] === T_OPEN_TAG) {
-            $prevOpen = $phpcsFile->findPrevious(T_OPEN_TAG, ($prev - 1));
-            if ($prevOpen === false) {
-                // This is a comment directly after the first open tag,
-                // so probably a file comment.
-                $fix = $phpcsFile->addFixableError('Missing %s doc comment', $stackPtr, 'Missing', array($name));
-                if ($fix === true) {
-                    $phpcsFile->fixer->addContent($commentEnd, "\n/**\n *\n */");
-                }
-
-                return;
+        $fileTag = $phpcsFile->findNext(T_DOC_COMMENT_TAG, ($start + 1), $commentEnd, false, '@file');
+        if ($fileTag !== false) {
+            // This is a file comment.
+            $fix = $phpcsFile->addFixableError('Missing %s doc comment', $stackPtr, 'Missing', array($name));
+            if ($fix === true) {
+                $phpcsFile->fixer->addContent($commentEnd, "\n/**\n *\n */");
             }
+
+            return;
         }
 
         if ($tokens[$commentEnd]['code'] === T_COMMENT) {

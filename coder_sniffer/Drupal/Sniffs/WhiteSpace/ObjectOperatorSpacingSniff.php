@@ -1,25 +1,30 @@
 <?php
 /**
- * Drupal_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff.
- *
- * PHP version 5
+ * \Drupal\Sniffs\WhiteSpace\ObjectOperatorSpacingSniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\WhiteSpace;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+use PHP_CodeSniffer\Util\Tokens;
+
 /**
  * Ensure that there are no white spaces before and after the object operator.
  *
- * Largely copied from Squiz_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff but
- * modified to not throw errors on multi line statements.
+ * Largely copied from
+ * \PHP_CodeSniffer\Standards\Squiz\Sniffs\WhiteSpace\ObjectOperatorSpacingSniff
+ * but modified to not throw errors on multi line statements.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff implements PHP_CodeSniffer_Sniff
+class ObjectOperatorSpacingSniff implements Sniff
 {
 
 
@@ -38,13 +43,13 @@ class Drupal_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff implements PHP_CodeSni
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
         if ($tokens[($stackPtr - 1)]['code'] !== T_WHITESPACE) {
@@ -70,7 +75,7 @@ class Drupal_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff implements PHP_CodeSni
         $phpcsFile->recordMetric($stackPtr, 'Spacing before object operator', $before);
         $phpcsFile->recordMetric($stackPtr, 'Spacing after object operator', $after);
 
-        $prevToken = $phpcsFile->findPrevious(PHP_CodeSniffer_Tokens::$emptyTokens, ($stackPtr - 1), null, true);
+        $prevToken = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($stackPtr - 1), null, true);
         // Line breaks are allowed before an object operator.
         if ($before !== 0 && $tokens[$stackPtr]['line'] === $tokens[$prevToken]['line']) {
             $error = 'Space found before object operator';
@@ -84,7 +89,16 @@ class Drupal_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff implements PHP_CodeSni
             $error = 'Space found after object operator';
             $fix   = $phpcsFile->addFixableError($error, $stackPtr, 'After');
             if ($fix === true) {
-                $phpcsFile->fixer->replaceToken(($stackPtr + 1), '');
+                if ($after === 'newline') {
+                    // Delete the operator on this line and insert it before the
+                    // token on the next line.
+                    $phpcsFile->fixer->beginChangeset();
+                    $phpcsFile->fixer->replaceToken($stackPtr, '');
+                    $phpcsFile->fixer->addContentBefore(($stackPtr + 2), '->');
+                    $phpcsFile->fixer->endChangeset();
+                } else {
+                    $phpcsFile->fixer->replaceToken(($stackPtr + 1), '');
+                }
             }
         }
 

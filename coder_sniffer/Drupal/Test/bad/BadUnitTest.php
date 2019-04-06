@@ -3,10 +3,14 @@
  * Unit test class for all bad files.
  */
 
+namespace Drupal\bad;
+
+use Drupal\Test\CoderSniffUnitTest;
+
 /**
  * Unit test class for all bad files.
  */
-class Drupal_BadUnitTest extends CoderSniffUnitTest
+class BadUnitTest extends CoderSniffUnitTest
 {
 
 
@@ -18,7 +22,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
      *
      * @return array(int => int)
      */
-    public function getErrorList($testFile)
+    public function getErrorList($testFile = NULL)
     {
         switch ($testFile) {
             case 'bad.css':
@@ -49,6 +53,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                        );
             case 'bad.install':
                 return array(
+                        1 => 1,
                         13 => 1,
                         16 => 1,
                         51 => 1,
@@ -56,6 +61,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                        );
             case 'bad.module':
                 return array(
+                        1 => 1,
                         12 => 1,
                         19 => 1,
                         26 => 1,
@@ -115,6 +121,8 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         74 => 1,
                         75 => 1,
                         76 => 1,
+                        77 => 1,
+                        78 => 1,
                         79 => 1,
                         80 => 1,
                         81 => 1,
@@ -241,13 +249,13 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         357 => 1,
                         358 => 1,
                         359 => 1,
-                        360 => 1,
+                        360 => 2,
                         362 => 1,
-                        363 => 1,
+                        363 => 2,
                         365 => 1,
-                        366 => 1,
-                        369 => 1,
-                        372 => 2,
+                        366 => 2,
+                        369 => 2,
+                        372 => 3,
                         375 => 1,
                         376 => 1,
                         379 => 1,
@@ -271,17 +279,18 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         401 => 1,
                         403 => 1,
                         406 => 1,
-                        407 => 2,
+                        407 => 3,
                         411 => 2,
                         417 => 1,
                         418 => 2,
+                        421 => 1,
                         422 => 1,
                         424 => 2,
                         426 => 2,
                         428 => 1,
                         436 => 1,
                         438 => 1,
-                        443 => 2,
+                        443 => 1,
                         448 => 1,
                         452 => 1,
                         495 => 1,
@@ -295,13 +304,14 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         566 => 3,
                         575 => 1,
                         578 => 2,
+                        581 => 1,
                         588 => 1,
                         590 => 1,
                         592 => 1,
                         594 => 2,
                         595 => 1,
                         596 => 1,
-                        599 => 2,
+                        599 => 1,
                         601 => 2,
                         602 => 1,
                         603 => 1,
@@ -347,7 +357,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
                         765 => 1,
                         775 => 1,
                         791 => 1,
-                        795 => 2,
+                        795 => 4,
                         796 => 1,
                         799 => 1,
                         800 => 1,
@@ -377,7 +387,7 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
      *
      * @return array(int => int)
      */
-    public function getWarningList($testFile)
+    public function getWarningList($testFile = NULL)
     {
         switch ($testFile) {
             case 'bad.module':
@@ -423,10 +433,10 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
      *
      * @return array The list of test files.
      */
-    protected function getTestFiles()
+    protected function getTestFiles($testFileBase)
     {
         $dir = dirname(__FILE__);
-        $di  = new DirectoryIterator($dir);
+        $di  = new \DirectoryIterator($dir);
 
         foreach ($di as $file) {
             $path = $file->getPathname();
@@ -447,10 +457,10 @@ class Drupal_BadUnitTest extends CoderSniffUnitTest
      *
      * @return array The list of sniff codes.
      */
-    protected function getSniffCodes()
+    protected function allSniffCodes()
     {
         // We want to test all sniffs defined in the standard.
-        return array();
+        return TRUE;
 
     }//end getSniffCodes()
 

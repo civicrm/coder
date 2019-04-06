@@ -1,23 +1,29 @@
 <?php
 /**
- * Drupal_Sniffs_Functions_FunctionDeclarationSniff.
- *
- * PHP version 5
+ * \Drupal\Sniffs\Functions\FunctionDeclarationSniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\Functions;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+
 /**
  * Ensure that there is only one space after the function keyword and no space
  * before the opening parenthesis.
+ *
+ * @deprecated in Coder 8.x, will be removed in Coder 9.x.
+ * Squiz.Functions.MultiLineFunctionDeclaration is used instead, see ruleset.xml.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_Functions_FunctionDeclarationSniff implements PHP_CodeSniffer_Sniff
+class FunctionDeclarationSniff implements Sniff
 {
 
 
@@ -36,13 +42,13 @@ class Drupal_Sniffs_Functions_FunctionDeclarationSniff implements PHP_CodeSniffe
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
 

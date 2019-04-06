@@ -1,13 +1,16 @@
 <?php
 /**
- * DrupalPractice_Sniffs_General_OptionsTSniff
- *
- * PHP version 5
+ * \DrupalPractice\Sniffs\General\OptionsTSniff
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace DrupalPractice\Sniffs\General;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * Checks that values in #otions form arrays are translated.
@@ -16,7 +19,7 @@
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class DrupalPractice_Sniffs_General_OptionsTSniff implements PHP_CodeSniffer_Sniff
+class OptionsTSniff implements Sniff
 {
 
 
@@ -35,13 +38,13 @@ class DrupalPractice_Sniffs_General_OptionsTSniff implements PHP_CodeSniffer_Sni
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The current file being processed.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the function
+     *                                               name in the stack.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         // Look for the string "#options".
         $tokens = $phpcsFile->getTokens();
@@ -71,7 +74,7 @@ class DrupalPractice_Sniffs_General_OptionsTSniff implements PHP_CodeSniffer_Sni
             // We are only interested in string literals that are not numbers
             // and more than 3 characters long.
             if ($tokens[$arrayValue]['code'] === T_CONSTANT_ENCAPSED_STRING
-                && !is_numeric(substr($tokens[$arrayValue]['content'], 1, -1))
+                && is_numeric(substr($tokens[$arrayValue]['content'], 1, -1)) === false
                 && strlen($tokens[$arrayValue]['content']) > 5
             ) {
                 // We need to make sure that the string is the one and only part

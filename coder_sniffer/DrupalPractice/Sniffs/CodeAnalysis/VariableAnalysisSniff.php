@@ -2,8 +2,6 @@
 /**
  * This file is part of the VariableAnalysis addon for PHP_CodeSniffer.
  *
- * PHP version 5
- *
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Sam Graham <php-codesniffer-variableanalysis BLAHBLAH illusori.co.uk>
@@ -11,6 +9,11 @@
  * @license   http://www.opensource.org/licenses/bsd-license.php BSD License
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace DrupalPractice\Sniffs\CodeAnalysis;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * Holds details of a scope.
@@ -29,10 +32,16 @@ class ScopeInfo
     public $variables = array();
 
 
+    /**
+     * Constructor.
+     *
+     * @param int $currScope
+     */
     function __construct($currScope)
     {
+        // TODO: extract opener/closer.
         $this->owner = $currScope;
-        // TODO: extract opener/closer
+
     }//end __construct()
 
 
@@ -61,6 +70,7 @@ class VariableInfo
     public $firstInitialized;
     public $firstRead;
     public $ignoreUnused = false;
+    public $lastAssignment;
 
     static $scopeTypeDescriptions = array(
                                      'local'  => 'variable',
@@ -71,6 +81,11 @@ class VariableInfo
                                     );
 
 
+    /**
+     * Constructor.
+     *
+     * @param string $varName
+     */
     function __construct($varName)
     {
         $this->name = $varName;
@@ -93,7 +108,7 @@ class VariableInfo
  * @copyright 2011 Sam Graham <php-codesniffer-variableanalysis BLAHBLAH illusori.co.uk>
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
-class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_CodeSniffer_Sniff
+class VariableAnalysisSniff implements Sniff
 {
     /**
      * The current phpcsFile being checked.
@@ -548,13 +563,13 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
      *  Allows exceptions in a catch block to be unused without provoking unused-var warning.
      *  Set generic.codeanalysis.variableanalysis.allowUnusedCaughtExceptions to a true value.
      */
-    public $allowUnusedCaughtExceptions = false;
+    public $allowUnusedCaughtExceptions = true;
 
     /**
      *  Allow function parameters to be unused without provoking unused-var warning.
      *  Set generic.codeanalysis.variableanalysis.allowUnusedFunctionParameters to a true value.
      */
-    public $allowUnusedFunctionParameters = false;
+    public $allowUnusedFunctionParameters = true;
 
     /**
      *  A list of names of placeholder variables that you want to ignore from
@@ -571,14 +586,14 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     public function register()
     {
         // Magic to modfy $_passByRefFunctions with any site-specific settings.
-        if (!empty($this->sitePassByRefFunctions)) {
+        if (empty($this->sitePassByRefFunctions) === false) {
             foreach (preg_split('/\s+/', trim($this->sitePassByRefFunctions)) as $line) {
                 list ($function, $args) = explode(':', $line);
                 $this->_passByRefFunctions[$function] = explode(',', $args);
             }
         }
 
-        if (!empty($this->validUnusedVariableNames)) {
+        if (empty($this->validUnusedVariableNames) === false) {
             $this->validUnusedVariableNames = preg_split('/\s+/', trim($this->validUnusedVariableNames));
         }
 
@@ -596,20 +611,22 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
         $token  = $tokens[$stackPtr];
 
+        // Debug code.
         // if ($token['content'] == '$param') {
         // echo "Found token on line {$token['line']}.\n" . print_r($token, true);
         // }
+        // End: Debug code.
         if ($this->currentFile !== $phpcsFile) {
             $this->currentFile = $phpcsFile;
         }
@@ -629,7 +646,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         }
 
         if (($token['code'] === T_CLOSE_CURLY_BRACKET)
-            && isset($token['scope_condition'])
+            && isset($token['scope_condition']) === true
         ) {
             return $this->processScopeClose($phpcsFile, $token['scope_condition']);
         }
@@ -637,6 +654,13 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end process()
 
 
+    /**
+     * Remove special characters from the variable name.
+     *
+     * @param string $varName
+     *
+     * @return string
+     */
     function normalizeVarName($varName)
     {
         $varName = preg_replace('/[{}$]/', '', $varName);
@@ -645,47 +669,76 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end normalizeVarName()
 
 
+    /**
+     * Generate a scope key based on the current file.
+     *
+     * @param string $currScope
+     *
+     * @return string
+     */
     function scopeKey($currScope)
     {
         if ($currScope === false) {
             $currScope = 'file';
         }
 
-        return ($this->currentFile ? $this->currentFile->getFilename() : 'unknown file').':'.$currScope;
+        if (isset($this->currentFile) === true) {
+            return ($this->currentFile->getFilename()).':'.$currScope;
+        } else {
+            return ('unknown file').':'.$currScope;
+        }
 
     }//end scopeKey()
 
 
-    // Warning: this is an autovivifying get
-
-
+    /**
+     * Warning: this is an autovivifying get.
+     *
+     * @param string|false $currScope
+     * @param bool         $autoCreate
+     *
+     * @return ScopeInfo
+     */
     function getScopeInfo($currScope, $autoCreate = true)
     {
         $scopeKey = $this->scopeKey($currScope);
-        if (!isset($this->_scopes[$scopeKey])) {
-            if (!$autoCreate) {
+        if (isset($this->_scopes[$scopeKey]) === false) {
+            if ($autoCreate === false) {
                 return null;
             }
 
             $this->_scopes[$scopeKey] = new ScopeInfo($currScope);
-            }
+        }
 
         return $this->_scopes[$scopeKey];
 
     }//end getScopeInfo()
 
 
+    /**
+     * Get variable information for a given variable name.
+     *
+     * @param string $varName
+     *   Name of the variable.
+     * @param int    $currScope
+     *   Token stack pointer of the current scope.
+     * @param bool   $autoCreate
+     *   TRUE if the variable should be auto created.
+     *
+     * @return VariableInfo|null
+     *   Information about the variable.
+     */
     function getVariableInfo($varName, $currScope, $autoCreate = true)
     {
         $scopeInfo = $this->getScopeInfo($currScope, $autoCreate);
-        if (!isset($scopeInfo->variables[$varName])) {
-            if (!$autoCreate) {
+        if (isset($scopeInfo->variables[$varName]) === false) {
+            if ($autoCreate === false) {
                 return null;
             }
 
             $scopeInfo->variables[$varName] = new VariableInfo($varName);
-            if ($this->validUnusedVariableNames
-                && in_array($varName, $this->validUnusedVariableNames)
+            if (is_array($this->validUnusedVariableNames) === true
+                && in_array($varName, $this->validUnusedVariableNames) === true
             ) {
                 $scopeInfo->variables[$varName]->ignoreUnused = true;
             }
@@ -696,14 +749,24 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end getVariableInfo()
 
 
+    /**
+     * Mark the given variable as being assigned.
+     *
+     * @param string $varName
+     * @param int    $stackPtr
+     * @param string $currScope
+     *
+     * @return void
+     */
     function markVariableAssignment($varName, $stackPtr, $currScope)
     {
         $varInfo = $this->getVariableInfo($varName, $currScope);
-        if (!isset($varInfo->scopeType)) {
+        if (isset($varInfo->scopeType) === false) {
             $varInfo->scopeType = 'local';
         }
 
-        if (isset($varInfo->firstInitialized) && ($varInfo->firstInitialized <= $stackPtr)) {
+        if (isset($varInfo->firstInitialized) === true && ($varInfo->firstInitialized <= $stackPtr)) {
+            $varInfo->lastAssignment = $stackPtr;
             return;
         }
 
@@ -712,10 +775,22 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end markVariableAssignment()
 
 
+    /**
+     * Mark the given variable as being declared.
+     *
+     * @param string $varName
+     * @param string $scopeType
+     * @param string $typeHint
+     * @param int    $stackPtr
+     * @param string $currScope
+     * @param bool   $permitMatchingRedeclaration
+     *
+     * @return void
+     */
     function markVariableDeclaration($varName, $scopeType, $typeHint, $stackPtr, $currScope, $permitMatchingRedeclaration = false)
     {
         $varInfo = $this->getVariableInfo($varName, $currScope);
-        if (isset($varInfo->scopeType)) {
+        if (isset($varInfo->scopeType) === true) {
             if (($permitMatchingRedeclaration === false)
                 || ($varInfo->scopeType !== $scopeType)
             ) {
@@ -737,12 +812,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         }
 
         $varInfo->scopeType = $scopeType;
-        if (isset($typeHint)) {
+        if (isset($typeHint) === true) {
             $varInfo->typeHint = $typeHint;
         }
 
-        if (isset($varInfo->firstDeclared) && ($varInfo->firstDeclared <= $stackPtr)) {
+        if (isset($varInfo->firstDeclared) === true && ($varInfo->firstDeclared <= $stackPtr)) {
             return;
+        }
+
+        // When a global variable is declared it also means we can consider it as
+        // being initialized.
+        if ($scopeType === 'global') {
+            $varInfo->firstInitialized = $stackPtr;
         }
 
         $varInfo->firstDeclared = $stackPtr;
@@ -750,10 +831,19 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end markVariableDeclaration()
 
 
+    /**
+     * Mark the given variable as being read.
+     *
+     * @param string $varName
+     * @param int    $stackPtr
+     * @param string $currScope
+     *
+     * @return void
+     */
     function markVariableRead($varName, $stackPtr, $currScope)
     {
         $varInfo = $this->getVariableInfo($varName, $currScope);
-        if (isset($varInfo->firstRead) && ($varInfo->firstRead <= $stackPtr)) {
+        if (isset($varInfo->firstRead) === true && ($varInfo->firstRead <= $stackPtr)) {
             return;
         }
 
@@ -762,10 +852,19 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end markVariableRead()
 
 
+    /**
+     * Checks if a variable has been initialized.
+     *
+     * @param string $varName
+     * @param int    $stackPtr
+     * @param string $currScope
+     *
+     * @return bool
+     */
     function isVariableInitialized($varName, $stackPtr, $currScope)
     {
         $varInfo = $this->getVariableInfo($varName, $currScope);
-        if (isset($varInfo->firstInitialized) && $varInfo->firstInitialized <= $stackPtr) {
+        if (isset($varInfo->firstInitialized) === true && $varInfo->firstInitialized <= $stackPtr) {
             return true;
         }
 
@@ -774,15 +873,24 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end isVariableInitialized()
 
 
+    /**
+     * Checks if the given variable is undefined.
+     *
+     * @param string $varName
+     * @param int    $stackPtr
+     * @param string $currScope
+     *
+     * @return bool
+     */
     function isVariableUndefined($varName, $stackPtr, $currScope)
     {
         $varInfo = $this->getVariableInfo($varName, $currScope, false);
-        if (isset($varInfo->firstDeclared) && $varInfo->firstDeclared <= $stackPtr) {
+        if (isset($varInfo->firstDeclared) === true && $varInfo->firstDeclared <= $stackPtr) {
             // TODO: do we want to check scopeType here?
             return false;
         }
 
-        if (isset($varInfo->firstInitialized) && $varInfo->firstInitialized <= $stackPtr) {
+        if (isset($varInfo->firstInitialized) === true && $varInfo->firstInitialized <= $stackPtr) {
             return false;
         }
 
@@ -791,7 +899,17 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end isVariableUndefined()
 
 
-    function markVariableReadAndWarnIfUndefined($phpcsFile, $varName, $stackPtr, $currScope)
+    /**
+     * Marks a variable as read and throws a PHPCS warning if it is undefined.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param string                      $varName
+     * @param int                         $stackPtr
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
+    function markVariableReadAndWarnIfUndefined(File $phpcsFile, $varName, $stackPtr, $currScope)
     {
         $this->markVariableRead($varName, $stackPtr, $currScope);
 
@@ -810,12 +928,17 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end markVariableReadAndWarnIfUndefined()
 
 
-    function findFunctionPrototype(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Returns the function declaration pointer.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return int|false
+     */
+    function findFunctionPrototype(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) === false) {
             return false;
@@ -848,15 +971,21 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findFunctionPrototype()
 
 
-    function findVariableScope(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Find the scope the given pointer is in.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return int|false
+     */
+    function findVariableScope(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
         $token  = $tokens[$stackPtr];
 
         $in_class = false;
-        if (!empty($token['conditions'])) {
+        if (empty($token['conditions']) === false) {
             foreach (array_reverse($token['conditions'], true) as $scopePtr => $scopeCode) {
                 if (($scopeCode === T_FUNCTION) || ($scopeCode === T_CLOSURE)) {
                     return $scopePtr;
@@ -872,7 +1001,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             return $scopePtr;
         }
 
-        if ($in_class) {
+        if ($in_class === true) {
             // Member var of a class, we don't care.
             return false;
         }
@@ -883,10 +1012,16 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findVariableScope()
 
 
-    function isNextThingAnAssign(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Checks if the next token is an assignment.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return bool
+     */
+    function isNextThingAnAssign(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
 
         // Is the next non-whitespace an assignment?
@@ -908,29 +1043,35 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end isNextThingAnAssign()
 
 
-    function findWhereAssignExecuted(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Find the end of the assignment.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return int
+     */
+    function findWhereAssignExecuted(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
 
         // Write should be recorded at the next statement to ensure we treat
         // the assign as happening after the RHS execution.
         // eg: $var = $var + 1; -> RHS could still be undef.
-        // However, if we're within a bracketed expression, we take place at
-        // the closing bracket, if that's first.
+        // However, if we're within a bracketed expression,
         // eg: echo (($var = 12) && ($var == 12));
+        // we take place at the closing bracket, if that's first.
         $semicolonPtr = $phpcsFile->findNext(T_SEMICOLON, ($stackPtr + 1), null, false, null, true);
         $closePtr     = false;
         if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) !== false) {
-            if (isset($tokens[$openPtr]['parenthesis_closer'])) {
+            if (isset($tokens[$openPtr]['parenthesis_closer']) === true) {
                 $closePtr = $tokens[$openPtr]['parenthesis_closer'];
             }
         }
 
         if ($semicolonPtr === false) {
             if ($closePtr === false) {
-                // TODO: panic
+                // TODO: panic.
                 return $stackPtr;
             }
 
@@ -946,13 +1087,19 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findWhereAssignExecuted()
 
 
-    function findContainingBrackets(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Find the parenthesis if the pointer is in some.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return int|false
+     */
+    function findContainingBrackets(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
 
-        if (isset($tokens[$stackPtr]['nested_parenthesis'])) {
+        if (isset($tokens[$stackPtr]['nested_parenthesis']) === true) {
             $openPtrs = array_keys($tokens[$stackPtr]['nested_parenthesis']);
             return end($openPtrs);
         }
@@ -962,14 +1109,20 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findContainingBrackets()
 
 
-    function findFunctionCall(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Checks if the given pointer is in a function call.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return int|false
+     */
+    function findFunctionCall(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
 
-        if ($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) {
-            // First non-whitespace thing and see if it's a T_STRING function name
+        if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) !== false) {
+            // First non-whitespace thing and see if it's a T_STRING function name.
             $functionPtr = $phpcsFile->findPrevious(
                 T_WHITESPACE,
                 ($openPtr - 1),
@@ -988,22 +1141,28 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findFunctionCall()
 
 
-    function findFunctionCallArguments(
-        PHP_CodeSniffer_File $phpcsFile,
-        $stackPtr
-    ) {
+    /**
+     * Get the arguments of a function call.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     *
+     * @return array|false
+     */
+    function findFunctionCallArguments(File $phpcsFile, $stackPtr)
+    {
         $tokens = $phpcsFile->getTokens();
 
         // Slight hack: also allow this to find args for array constructor.
-        // TODO: probably should refactor into three functions: arg-finding and bracket-finding
+        // TODO: probably should refactor into three functions: arg-finding and bracket-finding.
         if (($tokens[$stackPtr]['code'] !== T_STRING) && ($tokens[$stackPtr]['code'] !== T_ARRAY)) {
-            // Assume $stackPtr is something within the brackets, find our function call
+            // Assume $stackPtr is something within the brackets, find our function call.
             if (($stackPtr = $this->findFunctionCall($phpcsFile, $stackPtr)) === false) {
                 return false;
             }
         }
 
-        // $stackPtr is the function name, find our brackets after it
+        // $stackPtr is the function name, find our brackets after it.
         $openPtr = $phpcsFile->findNext(
             T_WHITESPACE,
             ($stackPtr + 1),
@@ -1016,7 +1175,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             return false;
         }
 
-        if (!isset($tokens[$openPtr]['parenthesis_closer'])) {
+        if (isset($tokens[$openPtr]['parenthesis_closer']) === false) {
             return false;
         }
 
@@ -1026,7 +1185,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         $lastPtr      = $openPtr;
         $lastArgComma = $openPtr;
         while (($nextPtr = $phpcsFile->findNext(T_COMMA, ($lastPtr + 1), $closePtr)) !== false) {
-            if ($this->findContainingBrackets($phpcsFile, $nextPtr) == $openPtr) {
+            if ($this->findContainingBrackets($phpcsFile, $nextPtr) === $openPtr) {
                 // Comma is at our level of brackets, it's an argument delimiter.
                 array_push($argPtrs, range(($lastArgComma + 1), ($nextPtr - 1)));
                 $lastArgComma = $nextPtr;
@@ -1042,14 +1201,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end findFunctionCallArguments()
 
 
+    /**
+     * Checks the function prototype.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForFunctionPrototype(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // Are we a function or closure parameter?
         // It would be nice to get the list of function parameters from watching for
@@ -1079,7 +1247,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             && (($tokens[$functionPtr]['code'] === T_FUNCTION)
             || ($tokens[$functionPtr]['code'] === T_CLOSURE))
         ) {
-            // TODO: typeHint
+            // TODO: typeHint.
             $this->markVariableDeclaration($varName, 'param', null, $stackPtr, $functionPtr);
             // Are we pass-by-reference?
             $referencePtr = $phpcsFile->findPrevious(
@@ -1130,8 +1298,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                 // TODO: typeHints in use?
                 $this->markVariableDeclaration($varName, 'bound', null, $stackPtr, $functionPtr);
                 $this->markVariableAssignment($varName, $stackPtr, $functionPtr);
+
+                // Are we pass-by-reference?
+                $referencePtr = $phpcsFile->findPrevious(
+                    T_WHITESPACE,
+                    ($stackPtr - 1),
+                    null,
+                    true,
+                    null,
+                    true
+                );
+                if (($referencePtr !== false) && ($tokens[$referencePtr]['code'] === T_BITWISE_AND)) {
+                    $varInfo = $this->getVariableInfo($varName, $functionPtr);
+                    $varInfo->passByReference = true;
+                }
+
                 return true;
-            }
+            }//end if
         }//end if
 
         return false;
@@ -1139,14 +1322,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForFunctionPrototype()
 
 
+    /**
+     * Checks if we are in a catch() block.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForCatchBlock(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // Are we a catch block parameter?
         if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) === false) {
@@ -1169,10 +1361,10 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             && ($tokens[$catchPtr]['code'] === T_CATCH)
         ) {
             // Scope of the exception var is actually the function, not just the catch block.
-            // TODO: typeHint
+            // TODO: typeHint.
             $this->markVariableDeclaration($varName, 'local', null, $stackPtr, $currScope, true);
             $this->markVariableAssignment($varName, $stackPtr, $currScope);
-            if ($this->allowUnusedCaughtExceptions) {
+            if ($this->allowUnusedCaughtExceptions !== false) {
                 $varInfo = $this->getVariableInfo($varName, $currScope);
                 $varInfo->ignoreUnused = true;
             }
@@ -1185,8 +1377,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForCatchBlock()
 
 
+    /**
+     * Checks if $this is used within a class.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForThisWithinClass(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1195,12 +1397,11 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         $token  = $tokens[$stackPtr];
 
         // Are we $this within a class?
-        if (($varName != 'this') || empty($token['conditions'])) {
+        if (($varName !== 'this') || empty($token['conditions']) === true) {
             return false;
         }
 
         foreach (array_reverse($token['conditions'], true) as $scopePtr => $scopeCode) {
-
             if ($scopeCode === T_CLASS || $scopeCode === T_TRAIT) {
                 return true;
             }
@@ -1211,8 +1412,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForThisWithinClass()
 
 
+    /**
+     * Checks if the variable is a PHP super global.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForSuperGlobal(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1236,7 +1447,8 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
              'argv',
              'argc',
             )
-        )) {
+        ) === true
+        ) {
             return true;
         }
 
@@ -1245,8 +1457,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForSuperGlobal()
 
 
+    /**
+     * Checks if the variable is a static class member.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForStaticMember(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1268,7 +1490,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             return false;
         }
 
-        // Are we refering to self:: outside a class?
+        // Are we referring to self:: outside a class?
         // TODO: not sure this is our business or should be some other sniff.
         if (($tokens[$classNamePtr]['code'] === T_SELF)
             || ($tokens[$classNamePtr]['code'] === T_STATIC)
@@ -1281,9 +1503,9 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                 $err_desc  = 'static::';
             }
 
-            if (!empty($token['conditions'])) {
+            if (empty($token['conditions']) === false) {
                 foreach (array_reverse($token['conditions'], true) as $scopePtr => $scopeCode) {
-                    // self within a closure is invalid
+                    // Self within a closure is invalid.
                     // Note: have to fetch code from $tokens, T_CLOSURE isn't set for conditions codes.
                     if ($tokens[$scopePtr]['code'] === T_CLOSURE) {
                         $phpcsFile->addError(
@@ -1315,14 +1537,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForStaticMember()
 
 
+    /**
+     * Checks if the variable is being assigned to.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForAssignment(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // Is the next non-whitespace an assignment?
         if (($assignPtr = $this->isNextThingAnAssign($phpcsFile, $stackPtr)) === false) {
@@ -1332,7 +1563,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         // Plain ol' assignment. Simpl(ish).
         if (($writtenPtr = $this->findWhereAssignExecuted($phpcsFile, $assignPtr)) === false) {
             $writtenPtr = $stackPtr;
-            // I dunno
+            // I dunno.
         }
 
         // Check for the ampersand '&' after the assignment, which means this
@@ -1349,14 +1580,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForAssignment()
 
 
+    /**
+     * Check if this is a list language construct assignment.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForListAssignment(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // OK, are we within a list (...) construct?
         if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) === false) {
@@ -1382,8 +1622,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForListAssignment()
 
 
+    /**
+     * Check if this variable is declared globally.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForGlobalDeclaration(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1419,14 +1669,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForGlobalDeclaration()
 
 
+    /**
+     * Check is this is a static variable declaration.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForStaticDeclaration(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // Are we a static declaration?
         // Static declarations are a bit more complicated than globals, since they
@@ -1473,9 +1732,11 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             true
         );
         if (($staticPtr === false) || ($tokens[$staticPtr]['code'] !== T_STATIC)) {
+            // Debug code.
             // if ($varName == 'static4') {
             // echo "Failing token:\n" . print_r($tokens[$staticPtr], true);
             // }
+            // End: Debug code.
             return false;
         }
 
@@ -1500,14 +1761,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForStaticDeclaration()
 
 
+    /**
+     * Check if this is a foreach loop variable.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForForeachLoopVar(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         // Are we a foreach loopvar?
         if (($openPtr = $this->findContainingBrackets($phpcsFile, $stackPtr)) === false) {
@@ -1541,8 +1811,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForForeachLoopVar()
 
 
+    /**
+     * Check if this is a "&" function call.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForPassByReferenceFunctionCall(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1557,7 +1837,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
 
         // Is our function a known pass-by-reference function?
         $functionName = $tokens[$functionPtr]['content'];
-        if (!isset($this->_passByRefFunctions[$functionName])) {
+        if (isset($this->_passByRefFunctions[$functionName]) === false) {
             return false;
         }
 
@@ -1570,7 +1850,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         // We're within a function call arguments list, find which arg we are.
         $argPos = false;
         foreach ($argPtrs as $idx => $ptrs) {
-            if (in_array($stackPtr, $ptrs)) {
+            if (in_array($stackPtr, $ptrs) === true) {
                 $argPos = ($idx + 1);
                 break;
             }
@@ -1580,7 +1860,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             return false;
         }
 
-        if (!in_array($argPos, $refArgs)) {
+        if (in_array($argPos, $refArgs) === false) {
             // Our arg wasn't mentioned explicitly, are we after an elipsis catch-all?
             if (($elipsis = array_search('...', $refArgs)) === false) {
                 return false;
@@ -1612,8 +1892,18 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end checkForPassByReferenceFunctionCall()
 
 
+    /**
+     * Check if the variable is an object property.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param string                      $varName
+     * @param string                      $currScope
+     *
+     * @return bool
+     */
     protected function checkForSymbolicObjectProperty(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr,
         $varName,
         $currScope
@@ -1644,33 +1934,34 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     /**
      * Called to process class member vars.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The PHP_CodeSniffer file where this
-     *                                        token was found.
-     * @param int                  $stackPtr  The position where the token was found.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where this
+     *                                               token was found.
+     * @param int                         $stackPtr  The position where the token was found.
      *
      * @return void
      */
     protected function processMemberVar(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr
     ) {
+        // TODO: don't care for now.
         $tokens = $phpcsFile->getTokens();
         $token  = $tokens[$stackPtr];
-        // TODO: don't care for now
+
     }//end processMemberVar()
 
 
     /**
      * Called to process normal member vars.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The PHP_CodeSniffer file where this
-     *                                        token was found.
-     * @param int                  $stackPtr  The position where the token was found.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where this
+     *                                               token was found.
+     * @param int                         $stackPtr  The position where the token was found.
      *
      * @return void
      */
     protected function processVariable(
-        PHP_CodeSniffer_File $phpcsFile,
+        File $phpcsFile,
         $stackPtr
     ) {
         $tokens = $phpcsFile->getTokens();
@@ -1681,6 +1972,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
             return;
         }
 
+        // Debug code.
         // static $dump_token = false;
         // if ($varName == 'property') {
         // $dump_token = true;
@@ -1707,62 +1999,62 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         // Assignment via foreach (... as ...) { }
         // Pass-by-reference to known pass-by-reference function
         // Are we a $object->$property type symbolic reference?
-        if ($this->checkForSymbolicObjectProperty($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForSymbolicObjectProperty($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a function or closure parameter?
-        if ($this->checkForFunctionPrototype($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForFunctionPrototype($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a catch parameter?
-        if ($this->checkForCatchBlock($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForCatchBlock($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we $this within a class?
-        if ($this->checkForThisWithinClass($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForThisWithinClass($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a $GLOBALS, $_REQUEST, etc superglobal?
-        if ($this->checkForSuperGlobal($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForSuperGlobal($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // $var part of class::$var static member
-        if ($this->checkForStaticMember($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForStaticMember($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Is the next non-whitespace an assignment?
-        if ($this->checkForAssignment($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForAssignment($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // OK, are we within a list (...) = construct?
-        if ($this->checkForListAssignment($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForListAssignment($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a global declaration?
-        if ($this->checkForGlobalDeclaration($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForGlobalDeclaration($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a static declaration?
-        if ($this->checkForStaticDeclaration($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForStaticDeclaration($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we a foreach loopvar?
-        if ($this->checkForForeachLoopVar($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForForeachLoopVar($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
         // Are we pass-by-reference to known pass-by-reference function?
-        if ($this->checkForPassByReferenceFunctionCall($phpcsFile, $stackPtr, $varName, $currScope)) {
+        if ($this->checkForPassByReferenceFunctionCall($phpcsFile, $stackPtr, $varName, $currScope) === true) {
             return;
         }
 
@@ -1778,22 +2070,23 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
      * Note that there may be more than one variable in the string, which will
      * result only in one call for the string.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The PHP_CodeSniffer file where this
-     *                                        token was found.
-     * @param int                  $stackPtr  The position where the double quoted
-     *                                        string was found.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where this
+     *                                               token was found.
+     * @param int                         $stackPtr  The position where the double quoted
+     *                                               string was found.
      *
      * @return void
      */
     protected function processVariableInString(
-        PHP_CodeSniffer_File
+        File
         $phpcsFile,
         $stackPtr
     ) {
         $tokens = $phpcsFile->getTokens();
         $token  = $tokens[$stackPtr];
 
-        if (!preg_match_all($this->_double_quoted_variable_regexp, $token['content'], $matches)) {
+        $runMatch = preg_match_all($this->_double_quoted_variable_regexp, $token['content'], $matches);
+        if ($runMatch === 0 || $runMatch === false) {
             return;
         }
 
@@ -1801,11 +2094,11 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
         foreach ($matches[1] as $varName) {
             $varName = $this->normalizeVarName($varName);
             // Are we $this within a class?
-            if ($this->checkForThisWithinClass($phpcsFile, $stackPtr, $varName, $currScope)) {
+            if ($this->checkForThisWithinClass($phpcsFile, $stackPtr, $varName, $currScope) === true) {
                 continue;
             }
 
-            if ($this->checkForSuperGlobal($phpcsFile, $stackPtr, $varName, $currScope)) {
+            if ($this->checkForSuperGlobal($phpcsFile, $stackPtr, $varName, $currScope) === true) {
                 continue;
             }
 
@@ -1815,15 +2108,24 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     }//end processVariableInString()
 
 
+    /**
+     * Check variables in a compact() call.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile
+     * @param int                         $stackPtr
+     * @param array                       $arguments
+     * @param string                      $currScope
+     *
+     * @return void
+     */
     protected function processCompactArguments(
-        PHP_CodeSniffer_File
+        File
         $phpcsFile,
         $stackPtr,
         $arguments,
         $currScope
     ) {
         $tokens = $phpcsFile->getTokens();
-        $token  = $tokens[$stackPtr];
 
         foreach ($arguments as $argumentPtrs) {
             $argumentPtrs = array_values(
@@ -1834,11 +2136,11 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                     }
                 )
             );
-            if (empty($argumentPtrs)) {
+            if (empty($argumentPtrs) === true) {
                 continue;
             }
 
-            if (!isset($tokens[$argumentPtrs[0]])) {
+            if (isset($tokens[$argumentPtrs[0]]) === false) {
                 continue;
             }
 
@@ -1867,7 +2169,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
 
             if ($argument_first_token['code'] === T_DOUBLE_QUOTED_STRING) {
                 // Double-quoted string literal.
-                if (preg_match($this->_double_quoted_variable_regexp, $argument_first_token['content'])) {
+                if (preg_match($this->_double_quoted_variable_regexp, $argument_first_token['content']) === 1) {
                     // Bail if the string needs variable expansion, that's runtime stuff.
                     continue;
                 }
@@ -1885,15 +2187,15 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
     /**
      * Called to process variables named in a call to compact().
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The PHP_CodeSniffer file where this
-     *                                        token was found.
-     * @param int                  $stackPtr  The position where the call to compact()
-     *                                        was found.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where this
+     *                                               token was found.
+     * @param int                         $stackPtr  The position where the call to compact()
+     *                                               was found.
      *
      * @return void
      */
     protected function processCompact(
-        PHP_CodeSniffer_File
+        File
         $phpcsFile,
         $stackPtr
     ) {
@@ -1915,32 +2217,32 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
      * Note that although triggered by the closing curly brace of the scope, $stackPtr is
      * the scope conditional, not the closing curly brace.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The PHP_CodeSniffer file where this
-     *                                        token was found.
-     * @param int                  $stackPtr  The position of the scope conditional.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where this
+     *                                               token was found.
+     * @param int                         $stackPtr  The position of the scope conditional.
      *
      * @return void
      */
     protected function processScopeClose(
-        PHP_CodeSniffer_File
+        File
         $phpcsFile,
         $stackPtr
     ) {
         $scopeInfo = $this->getScopeInfo($stackPtr, false);
-        if (is_null($scopeInfo)) {
+        if (is_null($scopeInfo) === true) {
             return;
         }
 
         foreach ($scopeInfo->variables as $varInfo) {
-            if ($varInfo->ignoreUnused || isset($varInfo->firstRead)) {
+            if (($varInfo->ignoreUnused === true) || (isset($varInfo->firstRead) === true)) {
                 continue;
             }
 
-            if ($this->allowUnusedFunctionParameters && $varInfo->scopeType == 'param') {
+            if (($this->allowUnusedFunctionParameters === true) && ($varInfo->scopeType === 'param')) {
                 continue;
             }
 
-            if ($varInfo->passByReference && isset($varInfo->firstInitialized)) {
+            if (($varInfo->passByReference === true) && isset($varInfo->lastAssignment) === true) {
                 // If we're pass-by-reference then it's a common pattern to
                 // use the variable to return data to the caller, so any
                 // assignment also counts as "variable use" for the purposes
@@ -1948,7 +2250,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                 continue;
             }
 
-            if (isset($varInfo->firstDeclared)) {
+            if (isset($varInfo->firstDeclared) === true) {
                 $phpcsFile->addWarning(
                     "Unused %s %s.",
                     $varInfo->firstDeclared,
@@ -1958,9 +2260,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                      "\${$varInfo->name}",
                     )
                 );
-            }
-
-            if (isset($varInfo->firstInitialized)) {
+            } else if (isset($varInfo->firstInitialized) === true) {
                 $phpcsFile->addWarning(
                     "Unused %s %s.",
                     $varInfo->firstInitialized,
@@ -1970,7 +2270,7 @@ class DrupalPractice_Sniffs_CodeAnalysis_VariableAnalysisSniff implements PHP_Co
                      "\${$varInfo->name}",
                     )
                 );
-            }
+            }//end if
         }//end foreach
 
     }//end processScopeClose()

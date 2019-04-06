@@ -2,12 +2,15 @@
 /**
  * Parses and verifies the doc comments for files.
  *
- * PHP version 5
- *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
+
+namespace Drupal\Sniffs\Commenting;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * Parses and verifies the doc comments for files.
@@ -23,7 +26,7 @@
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
-class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
+class FileCommentSniff implements Sniff
 {
 
 
@@ -53,31 +56,34 @@ class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return int
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $this->currentFile = $phpcsFile;
 
         $tokens       = $phpcsFile->getTokens();
         $commentStart = $phpcsFile->findNext(T_WHITESPACE, ($stackPtr + 1), null, true);
 
-        // Files containing exactly one namespaced class, interface or trait must not
-        // have a file doc block.
+        // Files containing exactly one class, interface or trait are allowed to
+        // ommit a file doc block. If a namespace is used then the file comment must
+        // be omitted.
         $oopKeyword = $phpcsFile->findNext([T_CLASS, T_INTERFACE, T_TRAIT], $stackPtr);
-        if ($oopKeyword !== false && $phpcsFile->findNext([T_NAMESPACE], $stackPtr) !== false) {
+        if ($oopKeyword !== false) {
+            $namespace = $phpcsFile->findNext(T_NAMESPACE, $stackPtr);
             // Check if the file contains multiple classes/interfaces/traits - then a
             // file doc block is allowed.
             $secondOopKeyword = $phpcsFile->findNext([T_CLASS, T_INTERFACE, T_TRAIT], ($oopKeyword + 1));
-            // Classes, interfaces and traits should not have an @file doc
+            // Namespaced classes, interfaces and traits should not have an @file doc
             // block.
             if (($tokens[$commentStart]['code'] === T_DOC_COMMENT_OPEN_TAG
                 || $tokens[$commentStart]['code'] === T_COMMENT)
                 && $secondOopKeyword === false
+                && $namespace !== false
             ) {
                 $fix = $phpcsFile->addFixableError('Namespaced classes, interfaces and traits should not begin with a file doc comment', $commentStart, 'NamespaceNoFileDoc');
                 if ($fix === true) {
@@ -97,7 +103,23 @@ class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
                 }
             }
 
-            return ($phpcsFile->numTokens + 1);
+            if ($namespace !== false) {
+                return ($phpcsFile->numTokens + 1);
+            }
+
+            // Search for global functions before and after the class.
+            $function = $phpcsFile->findPrevious(T_FUNCTION, ($oopKeyword - 1));
+            if ($function === false) {
+                $function = $phpcsFile->findNext(T_FUNCTION, ($tokens[$oopKeyword]['scope_closer'] + 1));
+            }
+
+            $fileTag = $phpcsFile->findNext(T_DOC_COMMENT_TAG, ($commentStart + 1), null, false, '@file');
+
+            // No other classes, no other global functions and no explicit @file tag
+            // anywhere means it is ok to skip the file comment.
+            if ($secondOopKeyword === false && $function === false && $fileTag === false) {
+                return ($phpcsFile->numTokens + 1);
+            }
         }//end if
 
         if ($tokens[$commentStart]['code'] === T_COMMENT) {
@@ -105,14 +127,13 @@ class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
             if ($fix === true) {
                 $content = $tokens[$commentStart]['content'];
 
-                // If the comment starts with something like "/**+" then we just
+                // If the comment starts with something like "/**" then we just
                 // insert a space after the stars.
                 if (strpos($content, '/**') === 0) {
                     $phpcsFile->fixer->replaceToken($commentStart, str_replace('/**', '/** ', $content));
-                }
-                // Just turn the /* ... */ style comment into a /** ... */ style
-                // comment.
-                else if (strpos($content, '/*') === 0) {
+                } else if (strpos($content, '/*') === 0) {
+                    // Just turn the /* ... */ style comment into a /** ... */ style
+                    // comment.
                     $phpcsFile->fixer->replaceToken($commentStart, str_replace('/*', '/**', $content));
                 } else {
                     $content = trim(ltrim($tokens[$commentStart]['content'], '/# '));
@@ -148,23 +169,24 @@ class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
 
         // If there is no @file tag and the next line is a function or class
         // definition then the file docblock is mising.
-        if ($fileTag === false
-            && $tokens[$next]['line'] === ($tokens[$commentEnd]['line'] + 1)
-            && in_array($tokens[$next]['code'], array(T_FUNCTION)) === true
+        if ($tokens[$next]['line'] === ($tokens[$commentEnd]['line'] + 1)
+            && $tokens[$next]['code'] === T_FUNCTION
         ) {
-            $fix = $phpcsFile->addFixableError('Missing file doc comment', $stackPtr, 'Missing');
-            if ($fix === true) {
-                // Only PHP has a real opening tag, additional newline at the
-                // beginning here.
-                if ($phpcsFile->tokenizerType === 'PHP') {
-                    $phpcsFile->fixer->addContent($stackPtr, "\n/**\n * @file\n */\n");
-                } else {
-                    $phpcsFile->fixer->addContent($stackPtr, "/**\n * @file\n */\n");
+            if ($fileTag === false) {
+                $fix = $phpcsFile->addFixableError('Missing file doc comment', $stackPtr, 'Missing');
+                if ($fix === true) {
+                    // Only PHP has a real opening tag, additional newline at the
+                    // beginning here.
+                    if ($phpcsFile->tokenizerType === 'PHP') {
+                        $phpcsFile->fixer->addContent($stackPtr, "\n/**\n * @file\n */\n");
+                    } else {
+                        $phpcsFile->fixer->addContent($stackPtr, "/**\n * @file\n */\n");
+                    }
                 }
-            }
 
-            return ($phpcsFile->numTokens + 1);
-        }
+                return ($phpcsFile->numTokens + 1);
+            }
+        }//end if
 
         if ($fileTag === false || $tokens[$fileTag]['line'] !== ($tokens[$commentStart]['line'] + 1)) {
             $second_line = $phpcsFile->findNext(array(T_DOC_COMMENT_STAR, T_DOC_COMMENT_CLOSE_TAG), ($commentStart + 1), $commentEnd);
@@ -187,8 +209,7 @@ class Drupal_Sniffs_Commenting_FileCommentSniff implements PHP_CodeSniffer_Sniff
 
         // Exactly one blank line after the file comment.
         if ($tokens[$next]['line'] !== ($tokens[$commentEnd]['line'] + 2)
-            && $tokens[$next]['line'] > $tokens[$commentEnd]['line']
-            && $tokens[$next]['code'] !== T_CLOSE_TAG
+            && $next !== false && $tokens[$next]['code'] !== T_CLOSE_TAG
         ) {
             $error = 'There must be exactly one blank line after the file comment';
             $fix   = $phpcsFile->addFixableError($error, $commentEnd, 'SpacingAfterComment');

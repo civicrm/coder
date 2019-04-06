@@ -16,7 +16,8 @@
  */
 
 use Drupal\very_long_module_name_i_am_inventing_here_trololololo\SuperManager;
-use \Drupal\some_module\ExampleClass as AliasedExampleClass;
+use Drupal\some_module\ExampleClass as AliasedExampleClass;
+use Drupal\mymodule\TestReturnType;
 
 // Singleline comment before a code line.
 $foo = 'bar';
@@ -60,7 +61,6 @@ $i--;
 $i++;
 ++$i;
 $x = $success ? $context['results']['success']++ : $context['results']['error']++;
-$x = $success ? foo()++ : bar()++;
 $i = -1;
 array('i' => -1);
 $i = (1 == -1);
@@ -71,6 +71,8 @@ $x->{$i} + 1;
 REQUEST_TIME + 42;
 !$x;
 !($x + $y);
+array(-1, -2, -3);
+[-1, -2, -3];
 
 // Operator line break for long lines.
 $x = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 +
@@ -346,7 +348,7 @@ multiline_call(Inspector::assertAllCallable([
   'strchr',
   [$x, 'callMe'],
   ['test', 'callMeStatic'],
-  function() {
+  function () {
     return TRUE;
   },
 ]));
@@ -354,7 +356,7 @@ multiline_call(Inspector::assertAllCallable(array(
   'strchr',
   array($x, 'callMe'),
   array('test', 'callMeStatic'),
-  function() {
+  function () {
     return TRUE;
   },
 )));
@@ -378,6 +380,44 @@ $options = array(
       },
     ),
   ],
+);
+
+$test = array(
+  'original' => '$no_index_value_scalar = TRUE;',
+  'settings' => array(
+    'no_index_value_foo' => array(
+      'foo' => array(
+        'value' => (object) array(
+          'value' => NULL,
+          'required' => TRUE,
+          'comment' => 'comment',
+        ),
+      ),
+    ),
+  ),
+  'expected' => <<<'EXPECTED'
+$no_index_value_scalar = TRUE;
+$no_index_value_foo['foo']['value'] = NULL; // comment
+EXPECTED
+);
+
+$test = array(
+  'original' => '$no_index_value_scalar = TRUE;',
+  'settings' => array(
+    'no_index_value_foo' => array(
+      'foo' => array(
+        'value' => (object) array(
+          'value' => NULL,
+          'required' => TRUE,
+          'comment' => 'comment',
+        ),
+      ),
+    ),
+  ),
+  'expected' => <<<EXPECTED
+abc
+def
+EXPECTED
 );
 
 // Item assignment operators must be prefixed and followed by a space.
@@ -536,21 +576,42 @@ $var = foo(
 /**
  * Class declaration.
  *
- * Classes always have a multiline comment.
+ * Classes can have a multiline comment.
  */
 class Bar {
 
-  // Private properties have no prefix.
+  /**
+   * Private properties have no prefix.
+   *
+   * @var int
+   */
   private $secret = 1;
 
-  // Protected properties also don't have a prefix.
+  /**
+   * Protected properties also don't have a prefix.
+   *
+   * @var int
+   */
   protected $foo = 1;
 
-  // Longer properties use camelCase naming.
+  /**
+   * Longer properties use camelCase naming.
+   *
+   * @var int
+   */
   public $barProperty = 1;
 
-  // Public static variables use camelCase, too.
+  /**
+   * Public static variables use camelCase, too.
+   *
+   * @var string
+   */
   public static $basePath = NULL;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $modules = ['node', 'user'];
 
   /**
    * Enter description here ...
@@ -574,6 +635,25 @@ class Bar {
     $this->foo--;
     --$this->foo;
     ++$this->foo;
+  }
+
+  /**
+   * It is allowed to leave out param docs on methods.
+   */
+  public function noParamDocs($a, $b) {
+
+  }
+
+  /**
+   * Param comments with references are found correctly.
+   *
+   * @param string $a
+   *   Parameter one.
+   * @param array $b
+   *   Parameter two.
+   */
+  public function test($a, array &$b) {
+
   }
 
 }
@@ -648,18 +728,18 @@ function test3() {
   // Uses the Rules API as example.
   $rule = rule();
   $rule->condition('rules_test_condition_true')
-       ->condition('rules_test_condition_true')
-       ->condition(rules_or()
-         // Inline test comment that continues on a
-         // second line.
-         ->condition(rules_condition('rules_test_condition_true')->negate())
-         ->condition('rules_test_condition_false')
-         ->condition(rules_and()
-           ->condition('rules_test_condition_false')
-           ->condition('rules_test_condition_true')
-           ->negate()
-         )
-       );
+    ->condition('rules_test_condition_true')
+    ->condition(rules_or()
+      // Inline test comment that continues on a
+      // second line.
+      ->condition(rules_condition('rules_test_condition_true')->negate())
+      ->condition('rules_test_condition_false')
+      ->condition(rules_and()
+        ->condition('rules_test_condition_false')
+        ->condition('rules_test_condition_true')
+        ->negate()
+      )
+    );
 }
 
 // Test usages of t().
@@ -721,7 +801,29 @@ t('x');
 // And here continues the long comment.
 // Now some UTF-8 characters that do not exceed 80 characters.
 // Hà Nội là thủ đô, đồng thời là thành phố đứng đầu Việt Nam về diện tích tự.
+//
+// Further information:
+// - @link https://api.drupal.org/api/drupal/groups/8 All topics @endlink
+// - @link https://www.drupal.org/project/examples Examples project (sample modules) @endlink
+// - @link https://www.drupal.org/list-changes API change notices @endlink
+// - @link https://www.drupal.org/developing/api/8 Drupal 8 API longer references @endlink
 t('x');
+
+// People want to pretty-format their numbered lists, do not throw an error for
+// this:
+// 1. A link has the current path in its 'data-drupal-link-system-path'
+//    attribute.
+// 2. We are on the front page and a link has the special '<front>' value in
+//    its 'data-drupal-link-system-path' attribute.
+t('x');
+
+// Concatenating some symbols is fine.
+$x = '(' . t('Test') . ')';
+$x = '[' . t('Test') . ']';
+$x = '- ' . t('Test') . ' -';
+$x = '<' . t('Test') . '>';
+$x = '«' . t('Test') . '»';
+$x = "\n" . t('Test') . "\n";
 
 /**
  * Doc block with some code tags.
@@ -780,7 +882,6 @@ function hook_foobar() {
 
 }
 
-
 /**
  * Implements hook_foo().
  *
@@ -815,6 +916,13 @@ function mymodule_foo_bar_twig() {
  * Implements drush_hook_foo_bar().
  */
 function drush_mymodule_foo_bar() {
+
+}
+
+/**
+ * Implements hook_foo_bar() for blocks.
+ */
+function mymodule_foo_bar_block() {
 
 }
 
@@ -966,21 +1074,24 @@ class Foo implements FooInterface {
   }
 
   /**
-   * Array type hints for optional parameters can be omitted.
-   *
-   * @param \Drupal\Core\Plugin\Context\ContextInterface[] $contexts
-   *   Description goes here.
-   */
-  public function test5($contexts = []) {
-    return 'test5';
-  }
-
-  /**
    * Not documenting a "throws" tag is allowed.
+   *
+   * This should not fail for errors with underscores in names as well.
+   * The second version of this test with error name with underscores
+   * is added below.
    *
    * @throws Exception
    */
   public function test6() {
+    throw new Exception();
+  }
+
+  /**
+   * Repeat of above test with error name with underscores.
+   *
+   * @throws \Twig_Error_Syntax
+   */
+  public function test7() {
     throw new Exception();
   }
 
@@ -990,7 +1101,7 @@ t('Some long mulit-line
   text is weird, but allowed.');
 
 // Anonymous functions should not throw indentation errors here.
-$test = array_walk($fragments, function(&$item) {
+$test = array_walk($fragments, function (&$item) {
   if (strpos($item, '%') === 0) {
     $item = '%';
   }
@@ -1120,6 +1231,13 @@ function test9() {
  * Visit also:
  * @link https://www.drupal.org/node/323101 Strings at well-known places: built-in menus, .. @endlink.
  *
+ * @section more_info Further information
+ *
+ * - @link https://api.drupal.org/api/drupal/groups/8 All topics @endlink
+ * - @link https://www.drupal.org/project/examples Examples project (sample modules) @endlink
+ * - @link https://www.drupal.org/list-changes API change notices @endlink
+ * - @link https://www.drupal.org/developing/api/8 Drupal 8 API longer references @endlink
+ *
  * @param string $title
  *   The untranslated title of the menu item.
  */
@@ -1138,18 +1256,7 @@ function test11() {
 }
 
 /**
- * Description here.
- *
- * @param array $array_param
- *   We document here that the parameter is an array, but we don't use an array
- *   type hint in the function signature which is allowed.
- */
-function test12($array_param) {
-
-}
-
-/**
- * Paramter docs with a long nested list.
+ * Parameter docs with a long nested list.
  *
  * @param string $a
  *   Lists are usually preceded by a line ending in a colon:
@@ -1228,6 +1335,20 @@ class ReactionRule extends ConfigEntityBase {
 }
 
 /**
+ * Underscores are allowed in properties of config entity classes.
+ */
+class NodeType extends ConfigEntityBundleBase {
+
+  /**
+   * Default value of the 'Create new revision' checkbox of this node type.
+   *
+   * @var bool
+   */
+  protected $new_revision = TRUE;
+
+}
+
+/**
  * Test class.
  */
 class OperatorTest {
@@ -1241,5 +1362,275 @@ class OperatorTest {
     $id = $id . '--' . ++static::$seenIds[$id];
     return $id;
   }
+
+}
+
+// Namespaced function call is allowed because PHP 5.5 and lower do not support
+// use statements for functions.
+$default_config = [
+  'verify' => TRUE,
+  'timeout' => 30,
+  'headers' => [
+    'User-Agent' => 'Drupal/' . \Drupal::VERSION . ' (+https://www.drupal.org/) ' . \GuzzleHttp\default_user_agent(),
+  ],
+  'handler' => $stack,
+];
+
+// camelCase and snake_case variables are allowed.
+$snake_case = 1;
+$camelCase = 1;
+
+// It should be possible to use a parenthesis in a comment without having the
+// InlineCommentSniff complain. (About the the last character of the line.)
+$comment = 'fine';
+
+/**
+ * Comments ending with parentheses.
+ *
+ * It should be possible to use a parenthesis in a comment without having the
+ * DocCommentSniff complain. (About the the last character of the line.)
+ *
+ * @param string $foo
+ *   A parameter comment is also allowed to end (with parenthesis)
+ */
+function test15($foo) {
+
+}
+
+/**
+ * Variable arguments with type declared.
+ *
+ * Variable arguments with type declared should not result in an error
+ * when no named argument is given in the param definition.
+ *
+ * @param string ...
+ *   Variable number of string arguments.
+ */
+function test16() {
+
+}
+
+$access =
+  $account->hasPermission('translate configuration') &&
+  $mapper->hasSchema() &&
+  $mapper->hasTranslatable() &&
+  $source_language_access;
+
+/**
+ * Return with optional null and function with some void returns.
+ *
+ * When a function has an optional null as a return value then it should not
+ * result in an error when there is a void return in the function.
+ *
+ * @param string $arg
+ *   An argument.
+ *
+ * @return int|null
+ *   Return has an optional null.
+ */
+function test17($arg) {
+  if ($arg === 1) {
+    return;
+  }
+  return 1;
+}
+
+/**
+ * Ignore indentation of multi-line function declarations.
+ */
+function test18(ConfigFactoryInterface $config_factory,
+                EntityTypeManagerInterface $entity_type_manager,
+                CacheTagsInvalidatorInterface $cache_invalidator,
+                ModuleHandlerInterface $module_handler,
+                EntityFieldManagerInterface $entity_field_manager,
+                EntityTypeBundleInfoInterface $entity_type_bundle_info) {
+  return 0;
+}
+
+/**
+ * Object operator indentation is fine like this.
+ */
+function is_table_empty($table_name, $database) {
+  return !$database->schema()->tableExists($table_name) ||
+    !$database->select($table_name)
+      ->countQuery()
+      ->range(0, 1)
+      ->execute()
+      ->fetchField();
+}
+
+/**
+ * Another example of correct object operator indentation.
+ */
+function test19($key, $value, $connection) {
+  $connection->merge('foo')
+    ->keys(array(
+      'name' => $key,
+      'collection' => 'collection',
+    ))
+    ->fields(array('value' => $value))
+    ->execute();
+}
+
+// Correct object operator indentation.
+ContentLanguageSettings::create([
+  'target_entity_type_id' => 'entity_test',
+  'target_bundle' => 'some_bundle',
+])->setLanguageAlterable(TRUE)
+  ->setDefaultLangcode('authors_default')
+  ->save();
+
+/**
+ * Another example of correct operator indentation.
+ */
+function test20($link, $parents, $connection) {
+  return $connection
+    ->insert('book')
+    ->fields(array(
+      'nid' => $link['nid'],
+      'bid' => $link['bid'],
+      'pid' => $link['pid'],
+      'weight' => $link['weight'],
+    ) + $parents
+    )
+    ->execute();
+}
+
+/**
+ * PHP 7 type hints are allowed.
+ *
+ * @param string $a
+ *   Parameter one.
+ * @param int $b
+ *   Parameter two.
+ */
+function test21(string $a, int $b) {
+
+}
+
+/**
+ * Implements hook_very_long_module_name_neverending_hook_name_that_is_a_long_cat_alter().
+ */
+function mymodule_very_long_module_name_neverending_hook_name_that_is_a_long_cat_alter() {
+
+}
+
+/**
+ * @coversDefaultClass \Drupal\mymodule\Something
+ */
+class MyTest extends UnitTestBase {
+
+  /**
+   * @covers ::foo
+   */
+  public function testFoo() {
+
+  }
+
+}
+
+/**
+ * Numbers in types are allowed.
+ *
+ * @param \Drupal\x123_module\MyInterface $a
+ *   Parameter type with numbers in it.
+ */
+function test22(MyInterface $a) {
+
+}
+
+/**
+ * Using PHP 7 return types is allowed.
+ *
+ * @return \Drupal\mymodule\TestReturnType
+ *   What we return.
+ */
+function test23(): TestReturnType {
+  return foo();
+}
+
+/**
+ * Test class.
+ */
+class Test2 {
+
+  /**
+   * Using PHP 7 return type hints is fine.
+   *
+   * @return ValidatorInterface[]
+   *   The validators.
+   */
+  public function getValidators(): array {
+    return [
+      new PublishedNodesValidator(),
+      new MinimumNodesValidator($this->nrOfArticles),
+      new AccessibleOnCurrentDomainValidator($this->sectionService),
+    ];
+  }
+
+}
+
+/**
+ * Another test.
+ */
+class Test3 {
+
+  /**
+   * Parameters described by reference are OK.
+   *
+   * @param array &$form
+   *   The form array.
+   * @param Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   *
+   * @return array
+   *   A renderable array.
+   */
+  public function removeQueueItem(array &$form, FormStateInterface $form_state) {
+    $trigger = $form_state->getTriggeringElement();
+    $i = $trigger['#parents'][1];
+
+    $queues = $form_state->getValue('watch_queues', []);
+    $queues[$i]['to_remove'] = 1;
+    $form_state->setValue('watch_queues', $queues);
+    $this->rebuild($form_state, $form);
+
+    drupal_set_message($this->t('Item will be removed permanently when configuration is saved.'));
+    return StatusMessages::renderMessages(NULL);
+  }
+
+  /**
+   * Parameters described by reference are OK.
+   *
+   * @param Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param array &$old_form
+   *   The old form build.
+   *
+   * @return array
+   *   The newly built form.
+   */
+  protected function rebuild(FormStateInterface $form_state, array &$old_form) {
+    $form_state->setRebuild();
+    $form = $this->formBuilder
+      ->rebuildForm($this->getFormId(), $form_state, $old_form);
+    return $form;
+  }
+
+}
+
+/**
+ * Long annotation lines over 80 characters are ok.
+ *
+ * @WebformHandler(
+ *   id = "email",
+ *   label = @Translation("Email"),
+ *   category = @Translation("Notification"),
+ *   description = @Translation("Sends a webform submission via an email."),
+ *   cardinality = \Drupal\webform\WebformHandlerInterface::CARDINALITY_UNLIMITED,
+ *   results = \Drupal\webform\WebformHandlerInterface::RESULTS_PROCESSED,
+ * )
+ */
+class EmailWebformHandler extends WebformHandlerBase implements WebformHandlerMessageInterface {
 
 }

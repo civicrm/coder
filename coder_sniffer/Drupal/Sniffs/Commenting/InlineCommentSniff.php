@@ -1,26 +1,31 @@
 <?php
 /**
- * PHP_CodeSniffer_Sniffs_Drupal_Commenting_InlineCommentSniff.
- *
- * PHP version 5
+ * \Drupal\Sniffs\Commenting\InlineCommentSniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
 
+namespace Drupal\Sniffs\Commenting;
+
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
+use PHP_CodeSniffer\Util\Tokens;
+
 /**
- * PHP_CodeSniffer_Sniffs_Drupal_Commenting_InlineCommentSniff.
+ * \Drupal\Sniffs\Commenting\InlineCommentSniff.
  *
  * Checks that no perl-style comments are used. Checks that inline comments ("//")
  * have a space after //, start capitalized and end with proper punctuation.
- * Largely copied from Squiz_Sniffs_Commenting_InlineCommentSniff.
+ * Largely copied from
+ * \PHP_CodeSniffer\Standards\Squiz\Sniffs\Commenting\InlineCommentSniff.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sniff
+class InlineCommentSniff implements Sniff
 {
 
     /**
@@ -52,13 +57,13 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token in the
-     *                                        stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token in the
+     *                                               stack passed in $tokens.
      *
      * @return void
      */
-    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
 
@@ -67,7 +72,7 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
         // not allowed.
         if ($tokens[$stackPtr]['code'] === T_DOC_COMMENT_OPEN_TAG) {
             $nextToken = $phpcsFile->findNext(
-                PHP_CodeSniffer_Tokens::$emptyTokens,
+                Tokens::$emptyTokens,
                 ($stackPtr + 1),
                 null,
                 true
@@ -87,6 +92,7 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
                        T_ABSTRACT,
                        T_CONST,
                        T_PROPERTY,
+                       T_VAR,
                       );
 
             // Also ignore all doc blocks defined in the outer scope (no scope
@@ -100,7 +106,7 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
             if ($phpcsFile->tokenizerType === 'JS') {
                 // We allow block comments if a function or object
                 // is being assigned to a variable.
-                $ignore    = PHP_CodeSniffer_Tokens::$emptyTokens;
+                $ignore    = Tokens::$emptyTokens;
                 $ignore[]  = T_EQUAL;
                 $ignore[]  = T_STRING;
                 $ignore[]  = T_OBJECT_OPERATOR;
@@ -115,7 +121,7 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
             }
 
             $prevToken = $phpcsFile->findPrevious(
-                PHP_CodeSniffer_Tokens::$emptyTokens,
+                Tokens::$emptyTokens,
                 ($stackPtr - 1),
                 null,
                 true
@@ -233,7 +239,7 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
             // (function references, machine names with underscores etc.).
             $matches = array();
             preg_match('/[a-z]+/', $words[0], $matches);
-            if (isset($matches[0]) && $matches[0] === $words[0]) {
+            if (isset($matches[0]) === true && $matches[0] === $words[0]) {
                 $error = 'Inline comments must start with a capital letter';
                 $fix   = $phpcsFile->addFixableError($error, $topComment, 'NotCapital');
                 if ($fix === true) {
@@ -245,10 +251,11 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
 
         $commentCloser   = $commentText[(strlen($commentText) - 1)];
         $acceptedClosers = array(
-                            'full-stops'        => '.',
-                            'exclamation marks' => '!',
-                            'colons'            => ':',
-                            'or question marks' => '?',
+                            'full-stops'             => '.',
+                            'exclamation marks'      => '!',
+                            'colons'                 => ':',
+                            'question marks'         => '?',
+                            'or closing parentheses' => ')',
                            );
 
         // Allow @tag style comments without punctuation.
@@ -261,7 +268,11 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
             $isUrl = isset($matches[0]) === true;
             preg_match('/[$a-zA-Z_]+\([$a-zA-Z_]*\)/', $lastWord, $matches);
             $isFunction = isset($matches[0]) === true;
-            if (!$isUrl && !$isFunction) {
+
+            // Also allow closing tags like @endlink or @endcode.
+            $isEndTag = $lastWord[0] === '@';
+
+            if ($isUrl === false && $isFunction === false && $isEndTag === false) {
                 $error = 'Inline comments must end in %s';
                 $ender = '';
                 foreach ($acceptedClosers as $closerName => $symbol) {
@@ -318,14 +329,14 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
     /**
      * Determines if a comment line is part of an @code/@endcode example.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return boolean Returns true if the comment line is within a @code block,
      *                 false otherwise.
      */
-    protected function isInCodeExample(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    protected function isInCodeExample(File $phpcsFile, $stackPtr)
     {
         $tokens      = $phpcsFile->getTokens();
         $prevComment = $stackPtr;
@@ -354,13 +365,13 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
     /**
      * Checks the indentation level of the comment contents.
      *
-     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
-     * @param int                  $stackPtr  The position of the current token
-     *                                        in the stack passed in $tokens.
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the current token
+     *                                               in the stack passed in $tokens.
      *
      * @return void
      */
-    protected function processIndentation(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
+    protected function processIndentation(File $phpcsFile, $stackPtr)
     {
         $tokens     = $phpcsFile->getTokens();
         $comment    = rtrim($tokens[$stackPtr]['content']);
@@ -424,7 +435,8 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
                                             '-',
                                             '@todo',
                                            );
-                    $words = preg_split('/\s+/', $prevCommentText);
+                    $words        = preg_split('/\s+/', $prevCommentText);
+                    $numberedList = (bool) preg_match('/^[0-9]+\./', $words[1]);
                     if (in_array($words[1], $indentationStarters) === true) {
                         if ($spaceCount !== ($prevSpaceCount + 2)) {
                             $error = 'Comment indentation error after %s element, expected %s spaces';
@@ -434,10 +446,20 @@ class Drupal_Sniffs_Commenting_InlineCommentSniff implements PHP_CodeSniffer_Sni
                                 $phpcsFile->fixer->replaceToken($stackPtr, $newComment);
                             }
                         }
+                    } else if ($numberedList === true) {
+                        $expectedSpaceCount = ($prevSpaceCount + strlen($words[1]) + 1);
+                        if ($spaceCount !== $expectedSpaceCount) {
+                            $error = 'Comment indentation error, expected %s spaces';
+                            $fix   = $phpcsFile->addFixableError($error, $stackPtr, 'SpacingBefore', array($expectedSpaceCount));
+                            if ($fix === true) {
+                                $newComment = '//'.str_repeat(' ', $expectedSpaceCount).ltrim($tokens[$stackPtr]['content'], "/\t ");
+                                $phpcsFile->fixer->replaceToken($stackPtr, $newComment);
+                            }
+                        }
                     } else {
                         $error = 'Comment indentation error, expected only %s spaces';
                         $phpcsFile->addError($error, $stackPtr, 'SpacingBefore', array($prevSpaceCount));
-                    }
+                    }//end if
                 }//end if
             } else {
                 $error = '%s spaces found before inline comment; expected "// %s" but found "%s"';
