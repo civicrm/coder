@@ -5,6 +5,8 @@
  <!-- All Drupal code files must be UTF-8 encoded and we treat them as such. -->
  <arg name="encoding" value="utf-8"/>
 
+ <autoload>autoload.php</autoload>
+
  <!-- CIVICRM: These are troubling </osterich> -->
  <rule ref="Squiz.PHP.NonExecutableCode.Unreachable"><severity>0</severity></rule>
  <rule ref="Generic.CodeAnalysis.UselessOverridingMethod.Found"><severity>0</severity></rule>
