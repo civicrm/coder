@@ -664,7 +664,14 @@ class FunctionCommentSniff implements Sniff
             }
 
             $suggestedType = implode('|', $suggestedNames);
-            if (preg_match('/\s/', $param['type']) === 1) {
+
+            // Support variadic arguments.
+            if (preg_match('/(\s+)\.{3}$/', $param['type'], $matches)) {
+                $param['type_space'] = strlen($matches[1]);
+                $param['type'] = preg_replace('/\s+\.{3}$/', '', $param['type']);
+            }
+
+            if (preg_match('/\s/', $param['type'])) {
                 $error = 'Parameter type "%s" must not contain spaces';
                 $data  = array($param['type']);
                 $phpcsFile->addError($error, $param['tag'], 'ParamTypeSpaces', $data);
