@@ -64,7 +64,6 @@
  <rule ref="Drupal.Commenting.InlineComment.SpacingBefore"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.InlineComment.WrongStyle"><severity>0</severity></rule>
  <rule ref="Drupal.Commenting.VariableComment.IncorrectParamVarName"><severity>0</severity></rule>
- <rule ref="Drupal.Commenting.VariableComment.IncorrectVarType"><severity>0</severity></rule>
  <rule ref="Drupal.Files.LineLength.TooLong"><severity>0</severity></rule>
  <rule ref="Drupal.Strings.UnnecessaryStringConcat.Found"><severity>0</severity></rule>
  <rule ref="Drupal.Formatting.MultipleStatementAlignment.NotSame"><severity>0</severity></rule>
