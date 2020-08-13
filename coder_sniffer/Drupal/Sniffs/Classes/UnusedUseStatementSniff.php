@@ -71,6 +71,10 @@ class UnusedUseStatementSniff implements Sniff
             return;
         }
 
+        if ($tokens[$classPtr]['content'] == 'E') {
+            return;
+        }
+
         // Search where the class name is used. PHP treats class names case
         // insensitive, that's why we cannot search for the exact class name string
         // and need to iterate over all T_STRING tokens in the file.
