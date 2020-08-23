@@ -80,6 +80,7 @@
  <rule ref="Drupal.NamingConventions.ValidVariableName"><severity>0</severity></rule>
  <rule ref="Drupal.NamingConventions.ValidVariableName.LowerCamelName"><severity>0</severity></rule>
  <rule ref="Drupal.NamingConventions.ValidVariableName.LowerCamelName"><severity>0</severity></rule>
+ <rule ref="Drupal.NamingConventions.ValidVariableName.MisspelledSeparator"><severity>5</severity></rule>
  <rule ref="Drupal.Semantics.RemoteAddress.RemoteAddress"><severity>0</severity></rule>
 
  <!-- CIVICRM: These excludes should be targetted at specific files, but I'm having trouble with exclude-pattern-->

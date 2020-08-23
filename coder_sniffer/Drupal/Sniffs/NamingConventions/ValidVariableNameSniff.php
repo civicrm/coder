@@ -45,6 +45,10 @@ class ValidVariableNameSniff extends AbstractVariableSniff
 
         $memberName = ltrim($tokens[$stackPtr]['content'], '$');
 
+        if (preg_match('/seperator|separater|seperater|seperetor/i', $memberName) === 1) {
+          $phpcsFile->addError("$memberName contains incorrect spelling of the word separator", $stackPtr, 'MisspelledSeparator');
+        }
+
         if (strpos($memberName, '_') === false) {
             return;
         }
@@ -110,6 +114,10 @@ class ValidVariableNameSniff extends AbstractVariableSniff
         if (preg_match('/^[A-Z]/', $varName) === 1) {
             $error = "Variable \"$varName\" starts with a capital letter, but only \$lowerCamelCase or \$snake_case is allowed";
             $phpcsFile->addError($error, $stackPtr, 'LowerStart');
+        }
+
+        if (preg_match('/seperator|separater|seperater|seperetor/i', $varName) === 1) {
+          $phpcsFile->addError("$varName contains incorrect spelling of the word separator", $stackPtr, 'MisspelledSeparator');
         }
 
     }//end processVariable()
