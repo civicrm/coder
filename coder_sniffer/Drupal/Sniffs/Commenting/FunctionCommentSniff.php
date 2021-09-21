@@ -342,7 +342,7 @@ class FunctionCommentSniff implements Sniff
                     }
 
                     $phpcsFile->addError($error, $return, 'MissingReturnComment');
-                } else if (strpos($type, ' ') !== false) {
+                } else if (strpos($type, ' ') !== false && strpos($type, 'array{') !== 0) {
                     if (preg_match('/^([^\s]+)[\s]+(\$[^\s]+)[\s]*$/', $type, $matches) === 1) {
                         $error = 'Return type must not contain variable name "%s"';
                         $data  = array($matches[2]);
@@ -671,11 +671,11 @@ class FunctionCommentSniff implements Sniff
                 $param['type'] = preg_replace('/\s+\.{3}$/', '', $param['type']);
             }
 
-            if (preg_match('/\s/', $param['type'])) {
+            if (preg_match('/\s/', $param['type']) && strpos($param['type'], 'array{') !== 0) {
                 $error = 'Parameter type "%s" must not contain spaces';
                 $data  = array($param['type']);
                 $phpcsFile->addError($error, $param['tag'], 'ParamTypeSpaces', $data);
-            } else if ($param['type'] !== $suggestedType) {
+            } else if ($param['type'] !== $suggestedType && strpos($param['type'], 'array{') !== 0) {
                 $error = 'Expected "%s" but found "%s" for parameter type';
                 $data  = array(
                           $suggestedType,
