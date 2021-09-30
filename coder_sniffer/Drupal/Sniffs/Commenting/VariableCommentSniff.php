@@ -145,7 +145,7 @@ class VariableCommentSniff extends AbstractVariableSniff
             if ($fix === true) {
                 $phpcsFile->fixer->replaceToken(($foundVar + 2), $matches[1]);
             }
-        } else if ($varType !== $suggestedType) {
+        } else if ($varType !== $suggestedType && strpos($varType, 'array{') !== 0) {
             $error = 'Expected "%s" but found "%s" for @var tag in member variable comment';
             $data  = array(
                       $suggestedType,
