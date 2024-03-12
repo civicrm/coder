@@ -29,6 +29,11 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 class FileCommentSniff implements Sniff
 {
 
+    /**
+     * @var \PHP_CodeSniffer\Files\File|null
+     */
+    public $currentFile = NULL;
+
 
     /**
      * A list of tokenizers this sniff supports.
