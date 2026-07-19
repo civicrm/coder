@@ -74,6 +74,7 @@
  <!-- CIVICRM: These rules are distinctly inappropriate -->
  <rule ref="Drupal.Classes.InterfaceName.InterfaceSuffix"><severity>0</severity></rule>
  <rule ref="Drupal.Classes.FullyQualifiedNamespace"><severity>0</severity></rule>
+ <rule ref="Drupal.Commenting.DataTypeNamespace"><severity>0</severity></rule>
  <rule ref="Drupal.NamingConventions.ValidClassName.NoUnderscores"><severity>0</severity></rule>
  <rule ref="Drupal.NamingConventions.ValidFunctionName.InvalidName"><severity>0</severity></rule>
  <rule ref="Drupal.NamingConventions.ValidFunctionName.NotCamelCaps"><severity>0</severity></rule>
