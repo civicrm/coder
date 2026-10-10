@@ -13,8 +13,9 @@ use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Util\Tokens;
 
 /**
- * Check the usage of the t() function to not escape translateable strings with back
- * slashes. Also checks that the first argument does not use string concatenation.
+ * Check the usage of the t() and ts() functions to not escape translateable strings
+ * with back slashes. Also checks that the first argument does not use string
+ * concatenation.
  *
  * @category PHP
  * @package  PHP_CodeSniffer
@@ -40,6 +41,7 @@ class FunctionTSniff extends FunctionCall
     {
         return array(
                 't',
+                'ts',
                 'TranslatableMarkup',
                 'TranslationWrapper',
                );
@@ -67,30 +69,43 @@ class FunctionTSniff extends FunctionCall
         $closeBracket
     ) {
         $tokens   = $phpcsFile->getTokens();
+        $name     = $tokens[$stackPtr]['content'];
+        $data     = array('t');
         $argument = $this->getArgument(1);
 
+        if ($name === 'ts') {
+            if ($this->isForeignTsMethod($phpcsFile, $stackPtr) === true
+                || $this->isInsideFunction($phpcsFile, $stackPtr, $name) === true
+            ) {
+                return;
+            }
+
+            $data = array('ts');
+        }
+
         if ($argument === false) {
-            $error = 'Empty calls to t() are not allowed';
-            $phpcsFile->addError($error, $stackPtr, 'EmptyT');
+            $error = 'Empty calls to %s() are not allowed';
+            $phpcsFile->addError($error, $stackPtr, 'EmptyT', $data);
             return;
         }
 
         if ($tokens[$argument['start']]['code'] !== T_CONSTANT_ENCAPSED_STRING) {
             // Not a translatable string literal.
-            $warning = 'Only string literals should be passed to t() where possible';
-            $phpcsFile->addWarning($warning, $argument['start'], 'NotLiteralString');
+            $warning = 'Only string literals should be passed to %s() where possible';
+            $phpcsFile->addWarning($warning, $argument['start'], 'NotLiteralString', $data);
             return;
         }
 
         $string = $tokens[$argument['start']]['content'];
         if ($string === '""' || $string === "''") {
-            $warning = 'Do not pass empty strings to t()';
-            $phpcsFile->addWarning($warning, $argument['start'], 'EmptyString');
+            $warning = 'Do not pass empty strings to %s()';
+            $phpcsFile->addWarning($warning, $argument['start'], 'EmptyString', $data);
             return;
         }
 
+        // CiviCRM appends SQL, markup and file extensions to ts() too often to tell them from text.
         $concatAfter = $phpcsFile->findNext(Tokens::$emptyTokens, ($closeBracket + 1), null, true, null, true);
-        if ($concatAfter !== false && $tokens[$concatAfter]['code'] === T_STRING_CONCAT) {
+        if ($name !== 'ts' && $concatAfter !== false && $tokens[$concatAfter]['code'] === T_STRING_CONCAT) {
             $stringAfter = $phpcsFile->findNext(Tokens::$emptyTokens, ($concatAfter + 1), null, true, null, true);
             if ($stringAfter !== false
                 && $tokens[$stringAfter]['code'] === T_CONSTANT_ENCAPSED_STRING
@@ -105,8 +120,8 @@ class FunctionTSniff extends FunctionCall
         if ($lastChar === '"' || $lastChar === "'") {
             $message = substr($string, 1, -1);
             if ($message !== trim($message)) {
-                $warning = 'Translatable strings must not begin or end with white spaces, use placeholders with t() for variables';
-                $phpcsFile->addWarning($warning, $argument['start'], 'WhiteSpace');
+                $warning = 'Translatable strings must not begin or end with white spaces, use placeholders with %s() for variables';
+                $phpcsFile->addWarning($warning, $argument['start'], 'WhiteSpace', $data);
             }
         }
 
@@ -134,6 +149,55 @@ class FunctionTSniff extends FunctionCall
         }
 
     }//end processFunctionCall()
+
+
+    /**
+     * Checks if a ts() method call belongs to something other than a civix helper.
+     *
+     * Only E::ts() and *ExtensionUtil::ts() translate; self::ts() or $obj->ts()
+     * are unrelated methods.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the function name.
+     *
+     * @return bool
+     */
+    protected function isForeignTsMethod(File $phpcsFile, $stackPtr)
+    {
+        $tokens   = $phpcsFile->getTokens();
+        $previous = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($stackPtr - 1), null, true);
+        if ($tokens[$previous]['code'] === T_OBJECT_OPERATOR || $tokens[$previous]['code'] === T_NULLSAFE_OBJECT_OPERATOR) {
+            return true;
+        }
+
+        if ($tokens[$previous]['code'] !== T_DOUBLE_COLON) {
+            return false;
+        }
+
+        $class = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($previous - 1), null, true);
+        $class = ltrim($tokens[$class]['content'], '\\');
+        return $class !== 'E' && substr($class, -strlen('ExtensionUtil')) !== 'ExtensionUtil';
+
+    }//end isForeignTsMethod()
+
+
+    /**
+     * Checks if the call sits inside a function of the same name.
+     *
+     * Wrappers such as the civix-generated ts() pass their parameters through.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param int                         $stackPtr  The position of the function name.
+     * @param string                      $name      The called function name.
+     *
+     * @return bool
+     */
+    protected function isInsideFunction(File $phpcsFile, $stackPtr, $name)
+    {
+        $function = $phpcsFile->getCondition($stackPtr, T_FUNCTION);
+        return $function !== false && $phpcsFile->getDeclarationName($function) === $name;
+
+    }//end isInsideFunction()
 
 
     /**

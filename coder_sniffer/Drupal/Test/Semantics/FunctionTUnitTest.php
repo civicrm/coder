@@ -20,6 +20,7 @@ class FunctionTUnitTest extends CoderSniffUnitTest
     {
         return array(
                 29 => 1,
+                40 => 1,
                );
 
     }//end getErrorList()
@@ -42,6 +43,9 @@ class FunctionTUnitTest extends CoderSniffUnitTest
                 25 => 1,
                 29 => 1,
                 33 => 1,
+                39 => 1,
+                41 => 1,
+                42 => 1,
                );
 
     }//end getWarningList()

@@ -34,3 +34,24 @@ class Test {
   }
 
 }
+
+// CiviCRM ts() and the civix E::ts() helper follow the same rules.
+$x = ts("Saved $name");
+$x = ts('Saved' . ' %1', [1 => $name]);
+$x = CRM_Foo_ExtensionUtil::ts(' Saved');
+$x = ts('Saved \'%1\'', [1 => $name]);
+$x = ts('Saved %1', [1 => $name]);
+$x = E::ts("Saved '%1'", [1 => $name]);
+$x = E::ts('receipt') . '.pdf';
+
+class CRM_Foo_ExtensionUtil {
+
+  public static function ts($text, $params = []) {
+    return ts($text, $params);
+  }
+
+  public function other() {
+    return self::ts($this->label) . $this->ts($this->label);
+  }
+
+}
