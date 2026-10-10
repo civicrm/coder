@@ -103,16 +103,16 @@ class FunctionTSniff extends FunctionCall
             return;
         }
 
-        // CiviCRM appends SQL, markup and file extensions to ts() too often to tell them from text.
         $concatAfter = $phpcsFile->findNext(Tokens::$emptyTokens, ($closeBracket + 1), null, true, null, true);
-        if ($name !== 'ts' && $concatAfter !== false && $tokens[$concatAfter]['code'] === T_STRING_CONCAT) {
+        if ($concatAfter !== false && $tokens[$concatAfter]['code'] === T_STRING_CONCAT) {
             $stringAfter = $phpcsFile->findNext(Tokens::$emptyTokens, ($concatAfter + 1), null, true, null, true);
             if ($stringAfter !== false
                 && $tokens[$stringAfter]['code'] === T_CONSTANT_ENCAPSED_STRING
                 && $this->checkConcatString($tokens[$stringAfter]['content']) === false
+                && ($name !== 'ts' || $this->checkTsConcatString($tokens[$stringAfter]['content']) === false)
             ) {
-                $warning = 'Do not concatenate strings to translatable strings, they should be part of the t() argument and you should use placeholders';
-                $phpcsFile->addWarning($warning, $stringAfter, 'ConcatString');
+                $warning = 'Do not concatenate strings to translatable strings, they should be part of the %s() argument and you should use placeholders';
+                $phpcsFile->addWarning($warning, $stringAfter, 'ConcatString', $data);
             }
         }
 
@@ -198,6 +198,33 @@ class FunctionTSniff extends FunctionCall
         return $function !== false && $phpcsFile->getDeclarationName($function) === $name;
 
     }//end isInsideFunction()
+
+
+    /**
+     * Checks if a string concatenated to ts() belongs to code around it.
+     *
+     * CiviCRM embeds ts() in markup, SQL, JavaScript and Smarty strings, and
+     * uses it for file names.
+     *
+     * @param string $string The string that is concatenated to a ts() call.
+     *
+     * @return bool
+     *   TRUE if the string is allowed to be concatenated with a translatable
+     *   string, FALSE if not.
+     */
+    protected function checkTsConcatString($string)
+    {
+        $string = substr($string, 1, -1);
+
+        // A file extension, or a quote that closes the string around the ts() call.
+        if (preg_match('/^(\.[a-z0-9]+$|[)\]]*["\']|\{\/?[a-z])/i', $string) === 1) {
+            return true;
+        }
+
+        $string = preg_replace('/\\\\n|&nbsp;|\s/', '', strip_tags($string));
+        return $string === '' || $string === '|';
+
+    }//end checkTsConcatString()
 
 
     /**

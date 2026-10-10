@@ -55,3 +55,16 @@ class CRM_Foo_ExtensionUtil {
   }
 
 }
+
+// ts() keeps typography inside the string.
+$x = ts('Selected Option') . ': ' . $option;
+$x = ts('Renew') . '...';
+$x = ts('Contribution') . ' %%StatusMessage%%';
+$x = ts('Invalid type') . ': "' . $type . '"';
+// ts() embedded in markup, SQL, JavaScript or Smarty, or used as a file name, is fine.
+$x = '<a title="' . ts('View Contact') . '" href="' . $url . '">';
+$x = 'IF(is_hidden, "' . ts('Search Results') . '", title) AS value';
+$x = 'IF(owner_id, "(' . E::ts('by relationship') . ')", owner_id)';
+$x = "{if '[parent_id]'}" . ts('Subtype of %1', [1 => '[parent_id:label]']) . "{/if}";
+$x = "<a href='#'>" . ts('flip') . "</a>&nbsp;|&nbsp;";
+$x = ts('First sentence.') . '\n\n' . ts('Second sentence.');
