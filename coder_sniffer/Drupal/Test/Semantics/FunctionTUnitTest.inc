@@ -68,3 +68,8 @@ $x = 'IF(owner_id, "(' . E::ts('by relationship') . ')", owner_id)';
 $x = "{if '[parent_id]'}" . ts('Subtype of %1', [1 => '[parent_id:label]']) . "{/if}";
 $x = "<a href='#'>" . ts('flip') . "</a>&nbsp;|&nbsp;";
 $x = ts('First sentence.') . '\n\n' . ts('Second sentence.');
+
+// ts() strings stay on one line.
+$x = ts('A long sentence
+  continued on the next line.');
+$x = ts("A long sentence\ncontinued.");

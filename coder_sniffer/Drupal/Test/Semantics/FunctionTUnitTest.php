@@ -50,6 +50,8 @@ class FunctionTUnitTest extends CoderSniffUnitTest
                 61 => 1,
                 62 => 1,
                 63 => 1,
+                73 => 1,
+                75 => 1,
                );
 
     }//end getWarningList()

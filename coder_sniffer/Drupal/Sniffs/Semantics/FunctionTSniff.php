@@ -116,6 +116,10 @@ class FunctionTSniff extends FunctionCall
             }
         }
 
+        if ($name === 'ts') {
+            $this->checkTsString($phpcsFile, $argument, $data);
+        }
+
         $lastChar = substr($string, -1);
         if ($lastChar === '"' || $lastChar === "'") {
             $message = substr($string, 1, -1);
@@ -198,6 +202,33 @@ class FunctionTSniff extends FunctionCall
         return $function !== false && $phpcsFile->getDeclarationName($function) === $name;
 
     }//end isInsideFunction()
+
+
+    /**
+     * Checks a ts() string against the CiviCRM translation best practices.
+     *
+     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
+     * @param array                       $argument  The first argument of the call.
+     * @param array                       $data      The function name for the messages.
+     *
+     * @return void
+     */
+    protected function checkTsString(File $phpcsFile, array $argument, array $data)
+    {
+        // PHPCS splits a string literal that spans lines into one token per line.
+        $tokens  = $phpcsFile->getTokens();
+        $literal = '';
+        for ($i = $argument['start']; $i <= $argument['end'] && $tokens[$i]['code'] === T_CONSTANT_ENCAPSED_STRING; $i++) {
+            $literal .= $tokens[$i]['content'];
+        }
+
+        $message = substr($literal, 1, -1);
+        if (strpos($message, "\n") !== false || ($literal[0] === '"' && strpos($message, '\n') !== false)) {
+            $warning = 'Translatable strings must not contain line breaks, keep the %s() string on a single line';
+            $phpcsFile->addWarning($warning, $argument['start'], 'LineBreak', $data);
+        }
+
+    }//end checkTsString()
 
 
     /**
