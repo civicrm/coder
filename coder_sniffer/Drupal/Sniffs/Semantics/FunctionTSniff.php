@@ -234,6 +234,12 @@ class FunctionTSniff extends FunctionCall
             $phpcsFile->addWarning($warning, $argument['start'], 'BlockTag', $data);
         }
 
+        // Several placeholders without words still let translators reorder them.
+        if (preg_match('/^(%\d+|\d+)?$/', preg_replace('/\s/', '', $message)) === 1) {
+            $warning = 'Translatable strings must contain words, do not pass a lone placeholder or number to %s()';
+            $phpcsFile->addWarning($warning, $argument['start'], 'NoWords', $data);
+        }
+
     }//end checkTsString()
 
 

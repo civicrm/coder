@@ -83,3 +83,11 @@ $x = ts('This information is <strong>very important</strong>.');
 $x = ts('<p>First paragraph.</p><p>Second paragraph.</p>');
 $x = ts('Remove these groups: <ul><li>%1</li></ul>', [1 => $groups]);
 $x = '<p>' . ts('First paragraph.') . '</p><p>' . ts('Second paragraph.') . '</p>';
+
+// ts() strings contain words.
+$x = ts('%1 %2 %3', [1 => $field, 2 => $op, 3 => $value]);
+$x = ts('%1', [1 => $label]);
+$x = ts('5');
+$x = ts('%1: %2', [1 => $label, 2 => $value]);
+$x = ts('"%1"', [1 => $label]);
+$x = ts('Page %1 of %2', [1 => $page, 2 => $pages]);
