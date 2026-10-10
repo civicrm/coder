@@ -73,3 +73,13 @@ $x = ts('First sentence.') . '\n\n' . ts('Second sentence.');
 $x = ts('A long sentence
   continued on the next line.');
 $x = ts("A long sentence\ncontinued.");
+
+// ts() strings keep inline markup, block-level markup goes around them.
+$x = ts('Use the <code>%1</code> setting.', [1 => $name]);
+$x = ts('Number of<br />Participants');
+$x = ts('Read the <a href="%1">documentation</a>.', [1 => $url]);
+$x = ts('Use a name and address, such as "Client Services" <services@example.org>.');
+$x = ts('This information is <strong>very important</strong>.');
+$x = ts('<p>First paragraph.</p><p>Second paragraph.</p>');
+$x = ts('Remove these groups: <ul><li>%1</li></ul>', [1 => $groups]);
+$x = '<p>' . ts('First paragraph.') . '</p><p>' . ts('Second paragraph.') . '</p>';

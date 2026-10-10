@@ -228,6 +228,12 @@ class FunctionTSniff extends FunctionCall
             $phpcsFile->addWarning($warning, $argument['start'], 'LineBreak', $data);
         }
 
+        // Inline markup such as links or emphasis stays in the string, so sentences are not split.
+        if (preg_match('/<\/?(p|div|br|hr|ul|ol|li|dl|dt|dd|table|thead|tbody|tfoot|tr|th|td|pre|blockquote|h[1-6])(\s[^>]*)?\/?>/i', $message) === 1) {
+            $warning = 'Translatable strings must not contain block-level HTML such as paragraphs, line breaks, lists or tables, put the markup around %s() and translate each paragraph separately';
+            $phpcsFile->addWarning($warning, $argument['start'], 'BlockTag', $data);
+        }
+
     }//end checkTsString()
 
 
