@@ -186,9 +186,10 @@ class FunctionTSniff extends FunctionCall
 
 
     /**
-     * Checks if the call sits inside a function of the same name.
+     * Checks if the call sits inside a wrapper of the same name.
      *
-     * Wrappers such as the civix-generated ts() pass their parameters through.
+     * Wrappers such as the civix-generated ts() or the Smarty block plugin
+     * smarty_block_ts() pass their parameters through.
      *
      * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
      * @param int                         $stackPtr  The position of the function name.
@@ -199,7 +200,12 @@ class FunctionTSniff extends FunctionCall
     protected function isInsideFunction(File $phpcsFile, $stackPtr, $name)
     {
         $function = $phpcsFile->getCondition($stackPtr, T_FUNCTION);
-        return $function !== false && $phpcsFile->getDeclarationName($function) === $name;
+        if ($function === false) {
+            return false;
+        }
+
+        $declared = $phpcsFile->getDeclarationName($function);
+        return $declared === $name || $declared === 'smarty_block_'.$name;
 
     }//end isInsideFunction()
 

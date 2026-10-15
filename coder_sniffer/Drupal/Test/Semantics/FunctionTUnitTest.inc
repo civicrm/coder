@@ -91,3 +91,12 @@ $x = ts('5');
 $x = ts('%1: %2', [1 => $label, 2 => $value]);
 $x = ts('"%1"', [1 => $label]);
 $x = ts('Page %1 of %2', [1 => $page, 2 => $pages]);
+
+// The Smarty {ts} block plugin passes its content through.
+function smarty_block_ts($params, $text, &$smarty) {
+  return ts($text, $params);
+}
+
+// Interpolated strings and variables never reach the translation template.
+$x = ts("Shutdown Worker for {$queueName}");
+$x = E::ts($label);
